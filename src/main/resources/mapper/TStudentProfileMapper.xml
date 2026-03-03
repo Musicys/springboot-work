@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.springbootinit.mapper.TStudentProfileMapper">
+
+    <resultMap id="BaseResultMap" type="com.yupi.springbootinit.model.domain.TStudentProfile">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="studentNo" column="student_no" jdbcType="VARCHAR"/>
+            <result property="college" column="college" jdbcType="VARCHAR"/>
+            <result property="major" column="major" jdbcType="VARCHAR"/>
+            <result property="grade" column="grade" jdbcType="VARCHAR"/>
+            <result property="idCardFront" column="id_card_front" jdbcType="VARCHAR"/>
+            <result property="idCardBack" column="id_card_back" jdbcType="VARCHAR"/>
+            <result property="authStatus" column="auth_status" jdbcType="TINYINT"/>
+            <result property="rejectReason" column="reject_reason" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,student_no,
+        college,major,grade,
+        id_card_front,id_card_back,auth_status,
+        reject_reason
+    </sql>
+</mapper>
