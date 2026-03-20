@@ -1,4 +1,4 @@
-package com.yupi.springbootinit.model.vo;
+package com.springbootinit.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

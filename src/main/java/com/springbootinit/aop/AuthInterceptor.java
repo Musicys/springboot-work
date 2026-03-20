@@ -1,6 +1,6 @@
-package com.yupi.springbootinit.aop;
+package com.springbootinit.aop;
 
-import com.yupi.springbootinit.annotation.AuthCheck;
+import com.springbootinit.annotation.AuthCheck;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

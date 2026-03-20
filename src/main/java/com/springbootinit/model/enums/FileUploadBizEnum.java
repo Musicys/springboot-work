@@ -1,4 +1,4 @@
-package com.yupi.springbootinit.model.enums;
+package com.springbootinit.model.enums;
 
 import java.util.Arrays;
 import java.util.List;

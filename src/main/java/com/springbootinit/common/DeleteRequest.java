@@ -1,4 +1,4 @@
-package com.yupi.springbootinit.common;
+package com.springbootinit.common;
 
 import java.io.Serializable;
 import lombok.Data;

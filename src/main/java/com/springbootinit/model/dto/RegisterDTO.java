@@ -1,4 +1,4 @@
-package com.yupi.springbootinit.model.dto;
+package com.springbootinit.model.dto;
 
 import lombok.Data;
 
