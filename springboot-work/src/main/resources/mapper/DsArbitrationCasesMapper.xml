@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.DsArbitrationCasesMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.DsArbitrationCases">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="orderId" column="order_id" jdbcType="BIGINT"/>
+            <result property="initiatorId" column="initiator_id" jdbcType="BIGINT"/>
+            <result property="userEvidenceSummary" column="user_evidence_summary" jdbcType="VARCHAR"/>
+            <result property="merchantEvidenceSummary" column="merchant_evidence_summary" jdbcType="VARCHAR"/>
+            <result property="adminComment" column="admin_comment" jdbcType="VARCHAR"/>
+            <result property="rulingResult" column="ruling_result" jdbcType="TINYINT"/>
+            <result property="finalSettlementAmount" column="final_settlement_amount" jdbcType="DECIMAL"/>
+            <result property="handledByAdminId" column="handled_by_admin_id" jdbcType="BIGINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+            <result property="closedAt" column="closed_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,order_id,initiator_id,
+        user_evidence_summary,merchant_evidence_summary,admin_comment,
+        ruling_result,final_settlement_amount,handled_by_admin_id,
+        status,created_at,closed_at
+    </sql>
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.DsComplaintsMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.DsComplaints">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="complainantId" column="complainant_id" jdbcType="BIGINT"/>
+            <result property="defendantId" column="defendant_id" jdbcType="BIGINT"/>
+            <result property="targetType" column="target_type" jdbcType="TINYINT"/>
+            <result property="relatedOrderId" column="related_order_id" jdbcType="BIGINT"/>
+            <result property="reasonCode" column="reason_code" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="evidenceUrls" column="evidence_urls" jdbcType="OTHER"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="resultAction" column="result_action" jdbcType="VARCHAR"/>
+            <result property="handledByAdminId" column="handled_by_admin_id" jdbcType="BIGINT"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+            <result property="closedAt" column="closed_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,complainant_id,defendant_id,
+        target_type,related_order_id,reason_code,
+        description,evidence_urls,status,
+        result_action,handled_by_admin_id,created_at,
+        closed_at
+    </sql>
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.OdOrdersMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.OdOrders">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="applicationId" column="application_id" jdbcType="BIGINT"/>
+            <result property="jobId" column="job_id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="merchantId" column="merchant_id" jdbcType="BIGINT"/>
+            <result property="tradeMode" column="trade_mode" jdbcType="TINYINT"/>
+            <result property="orderStatus" column="order_status" jdbcType="TINYINT"/>
+            <result property="depositFrozenId" column="deposit_frozen_id" jdbcType="BIGINT"/>
+            <result property="penaltyAmount" column="penalty_amount" jdbcType="DECIMAL"/>
+            <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+            <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
+            <result property="completedAt" column="completed_at" jdbcType="TIMESTAMP"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,application_id,job_id,
+        user_id,merchant_id,trade_mode,
+        order_status,deposit_frozen_id,penalty_amount,
+        start_time,end_time,completed_at,
+        created_at
+    </sql>
+</mapper>

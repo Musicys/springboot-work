@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.CmModulesMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.CmModules">
+            <id property="moduleKey" column="module_key" jdbcType="VARCHAR"/>
+            <result property="moduleName" column="module_name" jdbcType="VARCHAR"/>
+            <result property="isEnabled" column="is_enabled" jdbcType="TINYINT"/>
+            <result property="configData" column="config_data" jdbcType="OTHER"/>
+            <result property="priority" column="priority" jdbcType="INTEGER"/>
+            <result property="updatedBy" column="updated_by" jdbcType="BIGINT"/>
+            <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        module_key,module_name,is_enabled,
+        config_data,priority,updated_by,
+        updated_at
+    </sql>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.MsConversationsMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.MsConversations">
+            <id property="sessionId" column="session_id" jdbcType="VARCHAR"/>
+            <result property="participantIds" column="participant_ids" jdbcType="OTHER"/>
+            <result property="jobId" column="job_id" jdbcType="BIGINT"/>
+            <result property="lastMsgContent" column="last_msg_content" jdbcType="VARCHAR"/>
+            <result property="lastMsgTime" column="last_msg_time" jdbcType="TIMESTAMP"/>
+            <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        session_id,participant_ids,job_id,
+        last_msg_content,last_msg_time,updated_at
+    </sql>
+</mapper>

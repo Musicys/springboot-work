@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.CtCreditScoresMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.CtCreditScores">
+            <id property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="currentScore" column="current_score" jdbcType="INTEGER"/>
+            <result property="minThreshold" column="min_threshold" jdbcType="INTEGER"/>
+            <result property="lastUpdatedAt" column="last_updated_at" jdbcType="TIMESTAMP"/>
+            <result property="version" column="version" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        user_id,current_score,min_threshold,
+        last_updated_at,version
+    </sql>
+</mapper>

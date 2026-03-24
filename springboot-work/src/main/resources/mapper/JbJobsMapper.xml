@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.JbJobsMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.JbJobs">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="merchantId" column="merchant_id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="salaryMin" column="salary_min" jdbcType="DECIMAL"/>
+            <result property="salaryMax" column="salary_max" jdbcType="DECIMAL"/>
+            <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
+            <result property="regionCode" column="region_code" jdbcType="VARCHAR"/>
+            <result property="depositAmount" column="deposit_amount" jdbcType="DECIMAL"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="tradeMode" column="trade_mode" jdbcType="TINYINT"/>
+            <result property="publishTime" column="publish_time" jdbcType="TIMESTAMP"/>
+            <result property="expireTime" column="expire_time" jdbcType="TIMESTAMP"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,merchant_id,title,
+        description,salary_min,salary_max,
+        category_id,region_code,deposit_amount,
+        status,trade_mode,publish_time,
+        expire_time,created_at
+    </sql>
+</mapper>
