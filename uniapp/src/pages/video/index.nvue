@@ -1,0 +1,401 @@
+<template>
+   <view class="video-container" :style="{ height: windowHeightPx }">
+      <!-- 视频滑动容器（使用swiper实现上下滑动） -->
+
+      <swiper
+         class="video-swiper"
+         :style="{ height: windowHeightPx }"
+         vertical
+         :current="currentIndex"
+         :autoplay="false"
+         :circular="false"
+         :duration="300"
+         @change="onSwiperChange"
+         @transition="onSwiperTransition"
+         @animationfinish="onSwiperAnimationFinish">
+         <!-- 视频列表 -->
+         <swiper-item
+            v-for="(video, index) in videoList"
+            :key="video.id"
+            class="video-item"
+            :style="{ height: windowHeightPx }"
+            :circular="true"
+            :id="`video-item-${index}`">
+            <!-- 视频播放器 -->
+            <video
+               class="video-player"
+               :style="{ height: windowHeightPx }"
+               :src="video.src"
+               :id="`video-${index}`"
+               :autoplay="currentIndex === index"
+               loop
+               controls
+               :enable-progress-gesture="true"
+               object-fit="cover"
+               @play="onVideoPlay(index)"
+               @pause="onVideoPause(index)">
+               <view
+                  class="video-info"
+                  @click="togglePlayPause(index)"
+                  :style="{ height: windowHeightPx }">
+                  <view class="box" @click="goBack()" style="color: red">
+                     <tetx style="color: red">{{ '<' }}</tetx>
+                  </view>
+                  <view class="video-header">
+                     <text class="video-title">{{
+                        video.title.slice(0, 15)
+                     }}</text>
+                     <text class="video-author" style="color: red"
+                        >@{{ video.author }}</text
+                     >
+                  </view>
+                  <view class="video-description">
+                     <view class="action-item">
+                        <image :src="video.avatarUrl" class="img"></image>
+                     </view>
+                     <view class="action-item" @click="likeVideo(index)">
+                        <text class="action-icon">{{
+                           video.liked ? '❤️' : '🤍'
+                        }}</text>
+                        <text class="action-count">{{ video.likes }}</text>
+                     </view>
+                     <view class="action-item" @click="showComments(index)">
+                        <text class="action-icon">💬</text>
+                        <text class="action-count">{{ video.comments }}</text>
+                     </view>
+                     <view class="action-item" @click="shareVideo(index)">
+                        <text class="action-icon">🔗</text>
+                        <text class="action-count">分享</text>
+                     </view>
+                     <view class="action-item" @click="showMore(index)">
+                        <text class="action-icon">•••</text>
+                     </view>
+                  </view>
+               </view>
+            </video>
+
+            <!-- 视频菜单覆盖层 -->
+
+            <!-- 视频信息（悬浮在视频上） -->
+         </swiper-item>
+      </swiper>
+   </view>
+</template>
+
+<script setup lang="ts">
+import { ref, nextTick } from 'vue';
+import { getDynamicList, getDynamicOne } from '@/api/dynamic';
+import ChatVdieo from '@/webview/ChatVdieo.vue';
+
+const form = reactive({
+   page: 1,
+   pageSize: 10
+});
+//加载完毕
+const isLoad = ref(false);
+const initList = async () => {
+   if (isLoad.value) {
+      return;
+   }
+   const res = await getDynamicList({
+      lat: 39.9042,
+      lng: 116.4074,
+      page: form.page,
+      pageSize: form.pageSize,
+      province: '',
+      argId: '',
+      type: 1
+   });
+   if (res.code === 0) {
+      if (res.data.length !== form.pageSize) {
+         isLoad.value = true;
+      }
+      const arr = res.data.map(item => {
+         const video = JSON.parse(item.video);
+
+         return {
+            id: item.id,
+            title: item.context,
+            author: item.username,
+            src: video.filePath.replace(/`/g, ''),
+            likes: item.love,
+            comments: item.count || 0,
+            liked: item.isLove == 1,
+            avatarUrl: (item.avatarUrl || '').replace(/`/g, '')
+         };
+      });
+      form.page = form.page + 1;
+      videoList.value = [...videoList.value, ...arr];
+      console.log(videoList.value);
+   }
+};
+
+// 视频数据列表（实际项目中可替换为API请求）
+const videoList = ref([]);
+// 当前播放的视频索引
+const currentIndex = ref(0);
+// 窗口高度
+const windowHeight = ref(0);
+const windowHeightPx = ref('0px');
+// 上一个播放的视频索引
+const lastIndex = ref(0);
+
+// 页面加载时获取系统信息
+onLoad(async options => {
+   const systemInfo = uni.getSystemInfoSync();
+   windowHeight.value = systemInfo.windowHeight;
+   windowHeightPx.value = systemInfo.windowHeight + 'px';
+
+   if (options.id) {
+      const res = await getDynamicOne(options.id);
+      if (res.code === 0) {
+         const video = JSON.parse(res.data.video);
+
+         videoList.value.push({
+            id: res.data.id,
+            title: res.data.context,
+            author: res.data.username,
+            src: video.filePath,
+            likes: res.data.love,
+            comments: res.data.count || 0,
+            liked: res.data.isLove == 1,
+            avatarUrl: res.data.avatarUrl || ''
+         });
+      }
+   }
+   initList();
+
+   // 初始化视频播放
+   nextTick(() => {
+      playVideo(currentIndex.value);
+   });
+});
+
+//是否播放
+const isPlaying = ref(true);
+// 暂停 开始播放
+const togglePlayPause = (index: number) => {
+   const videoContext = uni.createVideoContext(`video-${index}`);
+   if (isPlaying.value) {
+      videoContext.pause();
+
+      isPlaying.value = false;
+   } else {
+      videoContext.play();
+      isPlaying.value = true;
+   }
+};
+
+// 播放视频
+const playVideo = (index: number) => {
+   const videoContext = uni.createVideoContext(`video-${index}`);
+   if (videoContext) {
+      videoContext.play();
+   }
+};
+
+// 暂停视频
+const pauseVideo = (index: number) => {
+   const videoContext = uni.createVideoContext(`video-${index}`);
+   if (videoContext) {
+      videoContext.pause();
+   }
+};
+
+// Swiper切换事件处理
+const onSwiperChange = (e: any) => {
+   const newIndex = e.detail.current;
+   console.log(isLoad.value, videoList.value.length - 1, newIndex);
+
+   if (newIndex === videoList.value.length - 1) {
+      if (!isLoad.value) {
+         initList();
+      } else {
+         uni.showToast({
+            title: '没有更多数据了',
+            icon: 'none'
+         });
+      }
+   }
+   // 只有在索引真正变化时才处理
+   if (newIndex !== currentIndex.value) {
+      // 暂停上一个视频
+      pauseVideo(currentIndex.value);
+      // 记录上一个索引
+      lastIndex.value = currentIndex.value;
+      // 更新当前索引
+      currentIndex.value = newIndex;
+   }
+};
+
+// Swiper过渡动画事件处理
+const onSwiperTransition = (e: any) => {
+   // 可以在这里添加过渡动画中的处理逻辑
+};
+
+// Swiper动画结束事件处理
+const onSwiperAnimationFinish = (e: any) => {
+   const newIndex = e.detail.current;
+   // 播放当前视频
+   playVideo(newIndex);
+};
+
+// 视频播放事件
+const onVideoPlay = (index: number) => {
+   currentIndex.value = index;
+};
+
+// 视频暂停事件
+const onVideoPause = (index: number) => {
+   // 可以在这里处理暂停逻辑
+};
+
+// 点赞视频
+const likeVideo = (index: number) => {
+   const video = videoList.value[index];
+   video.liked = !video.liked;
+   video.likes += video.liked ? 1 : -1;
+};
+
+// 显示评论
+const showComments = (index: number) => {
+   uni.showToast({
+      title: `查看第${index + 1}个视频的评论`,
+      icon: 'none'
+   });
+};
+
+// 分享视频
+const shareVideo = (index: number) => {
+   uni.showToast({
+      title: `分享第${index + 1}个视频`,
+      icon: 'none'
+   });
+};
+
+// 更多操作
+const showMore = (index: number) => {
+   uni.showToast({
+      title: `更多操作`,
+      icon: 'none'
+   });
+};
+</script>
+
+<style scoped>
+.video-container {
+   width: 750rpx;
+   background-color: #000;
+}
+.box {
+   position: absolute;
+   left: 35rpx;
+   top: var(--status-bar-height);
+   padding-top: 20rpx;
+   width: 50rpx;
+   height: 100rpx;
+   /* color: white; */
+   color: red;
+   z-index: 9999;
+}
+
+.video-swiper {
+   width: 750rpx;
+}
+
+.video-swiper .uni-swiper-item {
+   width: 750rpx;
+}
+
+.video-item {
+   position: absolute;
+   width: 750rpx;
+   background-color: #000;
+}
+
+.video-player {
+   width: 750rpx;
+}
+
+.video-info {
+   position: absolute;
+   bottom: 50rpx;
+   left: 0;
+   width: 750rpx;
+   padding: 40rpx;
+   padding-top: 200rpx;
+   color: #fff;
+   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+   z-index: 9999;
+}
+
+.video-header {
+   margin-bottom: 40rpx;
+   height: 400rpx;
+   position: absolute;
+   bottom: 0;
+   width: 600rpx;
+   justify-content: flex-end;
+}
+
+.video-title {
+   font-size: 36rpx;
+   font-weight: bold;
+   margin-bottom: 20rpx;
+   line-height: 50rpx;
+   lines: 2;
+   text-overflow: ellipsis;
+}
+
+.video-author {
+   font-size: 28rpx;
+   opacity: 0.8;
+   margin-bottom: 10rpx;
+}
+
+.action-item {
+   align-items: center;
+   margin-bottom: 40rpx;
+}
+
+.action-icon {
+   font-size: 64rpx;
+}
+
+.action-count {
+   font-size: 32rpx;
+   opacity: 0.9;
+}
+
+.video_menu {
+   position: absolute;
+   top: 200rpx;
+   left: 50%;
+   transform: translateX(-50%);
+   z-index: 100;
+   color: white;
+   cover-view-align: center;
+   background-color: rgba(0, 0, 0, 0.5);
+   padding: 20rpx 40rpx;
+   border-radius: 10rpx;
+}
+
+.video_menu .button {
+   background-color: rgba(255, 255, 255, 0.3);
+   padding: 10rpx 20rpx;
+   border-radius: 5rpx;
+}
+.video-description {
+   position: absolute;
+   right: 0;
+   width: 100rpx;
+   height: 500rpx;
+   bottom: 40rpx;
+}
+
+.img {
+   width: 80rpx;
+   height: 80rpx;
+   border-radius: 40rpx;
+}
+</style>

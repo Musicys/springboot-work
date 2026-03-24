@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+uni-page-wrapper {
+   background-color: #f5f5f5;
+}
+.wd-button {
+}
+
+.wd-button.is-success {
+   background: linear-gradient(to right, #04eee1, #0dd2f3) !important;
+}
+#app {
+   --quyou-nav-bg-color: #ffe088;
+
+   --quyou-nav-height: 95rpx; /*  */
+   --quyou-nav-ste-height: 86rpx; /*  */
+   --quyou-bg-centext-color: linear-gradient(160deg, #f2e9d2, #fff); /*  */
+}
+.wd-img {
+   width: 100%;
+   height: 100%;
+}
+.tn-read-more__operation-content {
+   background: none !important;
+}

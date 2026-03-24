@@ -1,0 +1,319 @@
+{
+   "globalStyle": {
+      "navigationBarTextStyle": "black",
+      "navigationBarTitleText": "Uni App",
+      "navigationBarBackgroundColor": "#F8F8F8",
+      "backgroundColor": "#F8F8F8",
+      "navigationStyle": "custom",
+      "app-plus": {
+         "bounce": "none",
+         "softinputMode": "adjustResize",
+         "inputAccessoryView": false
+      }
+   },
+   "pages": [
+      {
+         "path": "pages/tabar/index",
+         "name": "tabar",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "主页",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+      {
+         "path": "pages/start/index",
+         "name": "start",
+         "style": {
+            "navigationBarTitleText": "趣友",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+
+      {
+         "path": "pages/video/index",
+         "name": "video",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "视频",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+
+      {
+         "path": "pages/login/index",
+         "name": "login",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "登录",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+
+      {
+         "path": "pages/personal/index",
+         "name": "personal",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "完善用户信息",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+
+      {
+         "path": "pages/preinfo/index",
+         "name": "preinfo",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "用户信息",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+      {
+         "path": "pages/tabar/mine/userlst/index",
+         "name": "userlst",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "切换用户",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+      {
+         "path": "pages/tabar/mine/usermessage/index",
+         "name": "usermessage",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "用户信息",
+            "navigationBarBackgroundColor": "#E7F0FF"
+         }
+      },
+      {
+         "path": "pages/chat/index",
+         "name": "chat",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "聊天室",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/groupchat/index",
+         "name": "groupchat",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "群聊",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/befocused/index",
+         "name": "befocused",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "被关注",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/focuse/index",
+         "name": "focuse",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "关注",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/search/index",
+         "name": "search",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "搜索",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/tabar/mine/reply/index",
+         "name": "reply",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "回复",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      {
+         "path": "pages/tabar/mine/acceptable/index",
+         "name": "acceptable",
+         "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "认同",
+            "navigationBarBackgroundColor": "#E7F0FF",
+            "app-plus": {
+               "softinputMode": "adjustResize",
+               "inputAccessoryView": false
+            },
+            "h5": {
+               "softinputMode": "adjustResize"
+            }
+         }
+      },
+      // {
+      //    "path": "pages/tabar/home/index",
+      //    "name": "home",
+      //    "style": {
+      //       "mp-alipay": {
+      //          "allowsBounceVertical": "NO"
+      //       },
+      //       "navigationStyle": "custom",
+      //       "navigationBarTitleText": "首页"
+      //    }
+      // },
+      // {
+      //    "path": "pages/tabar/message/index",
+      //    "name": "message",
+      //    "style": {
+      //       "mp-alipay": {
+      //          "allowsBounceVertical": "NO"
+      //       },
+      //       "navigationStyle": "custom",
+      //       "navigationBarTitleText": "消息"
+      //    }
+      // },
+      // {
+      //    "path": "pages/tabar/dynamic/index",
+      //    "name": "dynamic",
+      //    "style": {
+      //       "mp-alipay": {
+      //          "allowsBounceVertical": "NO"
+      //       },
+      //       "navigationStyle": "custom",
+      //       "navigationBarTitleText": "动态"
+      //    }
+      // },
+      {
+         "path": "pages/tabar/dynamic/datails/index",
+         "name": "datails",
+         "style": {
+            "mp-alipay": {
+               "allowsBounceVertical": "NO"
+            },
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "动态详情"
+         }
+      },
+      {
+         "path": "pages/tabar/dynamic/sumbitfrom/index",
+         "name": "sumbitfrom",
+         "style": {
+            "mp-alipay": {
+               "allowsBounceVertical": "NO"
+            },
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "发送动态"
+         }
+      },
+      // {
+      //    "path": "pages/tabar/mine/index",
+      //    "name": "mine",
+      //    "style": {
+      //       "mp-alipay": {
+      //          "allowsBounceVertical": "NO"
+      //       },
+      //       "navigationStyle": "custom",
+      //       "navigationBarTitleText": "我的"
+      //    }
+      // },
+      {
+         "path": "pages/tabar/mine/exituser/index",
+         "name": "exituser",
+         "style": {
+            "mp-alipay": {
+               "allowsBounceVertical": "NO"
+            },
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "用户信息编辑"
+         }
+      },
+      {
+         "path": "pages/viewed/index",
+         "name": "viewed",
+         "style": {
+            "mp-alipay": {
+               "allowsBounceVertical": "NO"
+            },
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "被查看"
+         }
+      },
+      {
+         "path": "pages/look/index",
+         "name": "look",
+         "style": {
+            "mp-alipay": {
+               "allowsBounceVertical": "NO"
+            },
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "查看"
+         }
+      }
+   ],
+   "tabBar": {
+      "custom": true,
+      "selectedColor": "#ffdead",
+      "list": [
+         {
+            "pagePath": "pages/tabar/index",
+            "text": "主页"
+         }
+      ]
+   },
+   "easycom": {
+      "custom": {
+         "^(?!z-paging-refresh|z-paging-load-more)z-paging(.*)": "z-paging/components/z-paging$1/z-paging$1.vue",
+         "^tn-(.*)-(item|group)$": "@tuniao/tnui-vue3-uniapp/components/$1/src/$1-$2.vue",
+         "^tn-(.*)": "@tuniao/tnui-vue3-uniapp/components/$1/src/$1.vue"
+      }
+   }
+}

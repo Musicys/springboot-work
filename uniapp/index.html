@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+   <head>
+      <meta charset="UTF-8" />
+      <script>
+         var coverSupport =
+            'CSS' in window &&
+            typeof CSS.supports === 'function' &&
+            (CSS.supports('top: env(a)') || CSS.supports('top: constant(a)'));
+         document.write(
+            '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
+               (coverSupport ? ', viewport-fit=cover' : '') +
+               '" />'
+         );
+      </script>
+      <title></title>
+      <!--preload-links-->
+      <!--app-context-->
+   </head>
+   <style>
+      .uni-toast {
+         background-color: #fff7f8;
+         box-shadow: 0 0 10rpx rgba(255, 192, 203, 0.6);
+         width: 250rpx !important;
+         padding: 20rpx 0;
+         border-radius: 12rpx;
+         max-height: 250rpx !important;
+         display: flex;
+         color: black;
+         justify-content: center;
+         align-items: center;
+         flex-direction: column;
+
+         .uni-loading {
+            border-radius: 50%;
+            border: 4rpx solid rgba(255, 192, 203, 0.3);
+            border-top: 4rpx solid pink;
+            width: 100rpx !important;
+            height: 100rpx !important;
+            margin: 0 auto 10rpx;
+            position: relative;
+            /* 假设父元素有旋转动画（例如） */
+            animation: spin 1s linear infinite;
+         }
+
+         .uni-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80rrpx;
+            height: 80rpx;
+            border-radius: 50%;
+            background: url('https://web-scoke.oss-cn-beijing.aliyuncs.com/2024/d4f5d13ecce24070818331bb202eaedfloding.jpg') !important;
+            background-size: 100% 100% !important;
+
+            /* 关键：添加反向旋转动画，抵消父元素的旋转 */
+            animation: anti-spin 1s linear infinite;
+            /* 或者如果父元素用 transform 旋转，直接固定旋转角度： */
+            /* transform: rotate(0deg); */
+         }
+      }
+
+      /* 定义父元素的旋转动画 */
+      @keyframes spin {
+         from {
+            transform: rotate(0deg);
+         }
+         to {
+            transform: rotate(360deg);
+         }
+      }
+
+      /* 定义伪元素的反向旋转动画（抵消父元素旋转） */
+      @keyframes anti-spin {
+         from {
+            transform: rotate(0deg);
+         }
+         to {
+            transform: rotate(-360deg); /* 反向旋转相同角度 */
+         }
+      }
+   </style>
+   <body>
+      <div id="app"><!--app-html--></div>
+      <script type="module" src="/src/main.ts"></script>
+   </body>
+</html>
