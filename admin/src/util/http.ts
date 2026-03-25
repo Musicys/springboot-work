@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus';
 
 // 可选：自定义 loading 效果
 const instance = axios.create({
-   baseURL: '/api',
+   baseURL: import.meta.env.VITE_APP_BASE_API,
    timeout: 5000 // 建议改为合理的值，如 10000（10秒）
 });
 
@@ -11,6 +11,12 @@ const instance = axios.create({
 instance.interceptors.request.use(
    config => {
       // 显示 loading
+
+      // 从本地存储获取token
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+         config.headers.Authorization = `Bearer ${token}`;
+      }
 
       return config;
    },
