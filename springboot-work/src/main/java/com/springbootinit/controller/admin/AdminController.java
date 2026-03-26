@@ -70,6 +70,7 @@ public class AdminController {
         loginVO.setUsername(user.getUsername());
         loginVO.setUserType(user.getUserType());
         loginVO.setAvatarUrl(user.getAvatarUrl());
+        loginVO.setUserRote(user.getUserRote());
 
         return ResultUtils.success(loginVO);
     }

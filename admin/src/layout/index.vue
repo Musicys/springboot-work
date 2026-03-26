@@ -57,7 +57,7 @@ onMounted(() => {
       border-right: none !important;
    }
    .el-aside {
-      background: #545c64;
+      background: #393d49;
       width: 160px !important;
       transition: all 0.3;
    }

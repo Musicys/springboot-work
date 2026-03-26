@@ -1,4 +1,4 @@
-import { getAdminInfo } from '@/api/user';
+// import { getAdminInfo } from '@/api/user';
 import router from '@/router/index';
 
 // 拦截器
@@ -9,7 +9,7 @@ router.beforeEach(async (to, from, next) => {
    }
 
    try {
-      const res = await getAdminInfo();
+      // const res = await getAdminInfo();
       if (res.code == 0) {
          return next();
       } else {

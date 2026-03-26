@@ -88,7 +88,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { systemStore } from '@/store/modules/system';
 import logo from '@/assets/logo.webp';
-import { AdminOff } from '@/api/user';
+
 import { Admin } from '@/api/user/model/type';
 import { adminStore } from '@/store/modules/admin';
 const router = useRouter();
@@ -179,18 +179,6 @@ const handleCommand = async (command: string) => {
                type: 'warning'
             });
 
-            try {
-               let res = await AdminOff();
-               if (res.code == 0) {
-                  localStorage.removeItem('userInfo');
-                  ElMessage.success(res.data);
-                  // 跳转到登录页
-                  router.push('/login');
-               }
-            } catch {
-               localStorage.removeItem('userInfo');
-               router.push('/login');
-            }
             // 清除用户信息
          } catch {
             // 用户取消
@@ -234,24 +222,13 @@ onUnmounted(() => {
    display: flex;
    justify-content: space-between;
    align-items: center;
-   background: rgba(255, 255, 255, 0.1);
+   background: #23262e !important;
    backdrop-filter: blur(20px);
    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
    padding: 0 20px;
    height: 70px;
    position: relative;
    z-index: 1000;
-
-   &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-      z-index: -1;
-   }
 }
 
 .left-section {

@@ -81,13 +81,13 @@ export default defineConfig({
       port: 8081,
       // 添加代理配置示例
       proxy: {
-         '/api': {
-            target: 'http://101.42.172.99:8080/',
-            changeOrigin: true,
-            rewrite: path => path.replace(/^\/api/, ''),
-            host: true, // 监听所有地址，包括本机 IP
-            port: 5173
-         }
+         // '/api': {
+         //    target: 'http://localhost:8101/',
+         //    changeOrigin: true,
+         //    rewrite: path => path.replace(/^\/api/, ''),
+         //    host: true, // 监听所有地址，包括本机 IP
+         //    port: 5173
+         // }
       }
    }
 });

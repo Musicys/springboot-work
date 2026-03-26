@@ -23,7 +23,7 @@ import java.util.List;
  */
 @Api(tags = "管理员-用户管理")
 @RestController
-@RequestMapping("/admin/user")
+@RequestMapping("/admin/yhgl")
 public class AdminUserController {
 
     @Autowired
@@ -58,13 +58,13 @@ public class AdminUserController {
     /**
      * 获取用户详情
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 用户详情
      */
     @ApiOperation(value = "获取用户详情", notes = "根据ID获取用户详细信息")
-    @GetMapping("/detail/{userId}")
-    public BaseResponse<UrUsers> getUser(@ApiParam(value = "用户ID", required = true) @PathVariable Long userId) {
-        UrUsers user = urUsersService.getById(userId);
+    @PostMapping("/detail")
+    public BaseResponse<UrUsers> getUser(@ApiParam(value = "用户ID", required = true) @RequestParam Long id) {
+        UrUsers user = urUsersService.getById(id);
         if (user == null || user.getUserType() != 1) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
@@ -95,20 +95,19 @@ public class AdminUserController {
     /**
      * 更新用户
      *
-     * @param userId 用户ID
      * @param user 用户信息
      * @return 更新结果
      */
     @ApiOperation(value = "更新用户", notes = "更新用户信息")
-    @PutMapping("/update/{userId}")
-    public BaseResponse<Boolean> updateUser(
-            @ApiParam(value = "用户ID", required = true) @PathVariable Long userId,
-            @ApiParam(value = "用户信息", required = true) @RequestBody UrUsers user) {
-        UrUsers existing = urUsersService.getById(userId);
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateUser(@ApiParam(value = "用户信息", required = true) @RequestBody UrUsers user) {
+        if (user.getId() == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        UrUsers existing = urUsersService.getById(user.getId());
         if (existing == null || existing.getUserType() != 1) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
-        user.setId(userId);
         boolean update = urUsersService.updateById(user);
         return ResultUtils.success(update);
     }
@@ -116,17 +115,17 @@ public class AdminUserController {
     /**
      * 删除用户
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 删除结果
      */
     @ApiOperation(value = "删除用户", notes = "删除用户账号")
-    @DeleteMapping("/delete/{userId}")
-    public BaseResponse<Boolean> deleteUser(@ApiParam(value = "用户ID", required = true) @PathVariable Long userId) {
-        UrUsers existing = urUsersService.getById(userId);
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deleteUser(@ApiParam(value = "用户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
         if (existing == null || existing.getUserType() != 1) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
-        boolean delete = urUsersService.removeById(userId);
+        boolean delete = urUsersService.removeById(id);
         return ResultUtils.success(delete);
     }
 
@@ -134,18 +133,18 @@ public class AdminUserController {
      * 导出用户列表到Excel
      */
     @ApiOperation(value = "导出用户列表", notes = "将用户列表导出为Excel文件")
-    @GetMapping("/export")
+    @PostMapping("/export")
     public void exportUsers(HttpServletResponse response) throws Exception {
         QueryWrapper<UrUsers> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_type", 1);
         List<UrUsers> users = urUsersService.list(queryWrapper);
-        
+
         // 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("UTF-8");
         String fileName = URLEncoder.encode("用户列表", "UTF-8") + ".xlsx";
         response.setHeader("Content-disposition", "attachment;filename=" + fileName);
-        
+
         // 使用EasyExcel导出
         com.alibaba.excel.EasyExcel.write(response.getOutputStream(), UrUsers.class)
                 .sheet("用户列表")

@@ -68,6 +68,13 @@ public class UrUsers implements Serializable {
     @TableField("updated_at")
     private Date updatedAt;
 
+
+    /**
+     * 用户权限
+     */
+    @TableField("user_rote")
+    private Integer userRote;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

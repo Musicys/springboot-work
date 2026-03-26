@@ -222,24 +222,13 @@ onUnmounted(() => {
    display: flex;
    justify-content: space-between;
    align-items: center;
-   background: rgba(255, 255, 255, 0.1);
+   background: #23262e !important;
    backdrop-filter: blur(20px);
    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
    padding: 0 20px;
    height: 70px;
    position: relative;
    z-index: 1000;
-
-   &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-      z-index: -1;
-   }
 }
 
 .left-section {

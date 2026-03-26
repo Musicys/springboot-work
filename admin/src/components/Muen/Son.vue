@@ -139,9 +139,9 @@ onMounted(() => {
    }
 
    &.is-active {
-      background: #f5f5f5;
+      background: #409eff;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-
+      color: white !important;
       span {
          font-weight: 600;
          letter-spacing: 0.5px;
@@ -188,7 +188,7 @@ onMounted(() => {
    }
 
    &.is-active {
-      background: #f5f5f5;
+      background: #409eff;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
 
       span {

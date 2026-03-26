@@ -11,29 +11,29 @@ public class PageRequest {
     /**
      * 页码
      */
-    private Integer page;
+    private Integer pageNum;
 
     /**
      * 每页大小
      */
-    private Integer size;
+    private Integer pageSize;
 
     /**
      * 构造函数
      */
     public PageRequest() {
-        this.page = 1;
-        this.size = 10;
+        this.pageNum = 1;
+        this.pageSize = 10;
     }
 
     /**
      * 构造函数
-     * @param page 页码
-     * @param size 每页大小
+     * @param pageNum 页码
+     * @param pageSize 每页大小
      */
-    public PageRequest(Integer page, Integer size) {
-        this.page = page != null && page > 0 ? page : 1;
-        this.size = size != null && size > 0 ? size : 10;
+    public PageRequest(Integer pageNum, Integer pageSize) {
+        this.pageNum = pageNum != null && pageNum > 0 ? pageNum : 1;
+        this.pageSize = pageSize != null && pageSize > 0 ? pageSize : 10;
     }
 
 }

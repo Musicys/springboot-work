@@ -146,7 +146,9 @@ onMounted(() => {
       }
    });
 
-   const access = admin.$state.userinfo?.userrole == 1 ? 'admin' : 'user';
+   const access = admin.$state.userinfo?.userRote === 1 ? 'admin' : 'user';
+   console.log('用户角色', access, admin.$state.userinfo.userRote);
+
    if (access == 'admin') {
       MENU.value = ROTER?.children?.filter((item: any) => item.meta && Object.keys(item.meta).length > 0) || [];
    } else {
@@ -203,7 +205,7 @@ onMounted(() => {
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      // background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
       z-index: -1;
    }
 }
@@ -300,7 +302,7 @@ onMounted(() => {
    }
 
    &.is-active {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+      background: #409eff;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 
       .menu-icon {
@@ -322,12 +324,13 @@ onMounted(() => {
 }
 
 .sub-menu {
+   cursor: pointer;
    &:hover {
       background: rgba(255, 255, 255, 0.1);
    }
 
    &.is-active {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+      background: #409eff;
       position: relative;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 
@@ -338,7 +341,7 @@ onMounted(() => {
          top: 0;
          bottom: 0;
          width: 4px;
-         background: linear-gradient(to bottom, #667eea, #764ba2);
+
          border-radius: 0 3px 3px 0;
          box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
       }
@@ -380,7 +383,7 @@ onMounted(() => {
       }
 
       &.is-active {
-         background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+         background: #409eff !important;
          color: #ffffff !important;
          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 

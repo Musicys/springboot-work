@@ -23,7 +23,7 @@ import java.util.List;
  */
 @Api(tags = "管理员-商户管理")
 @RestController
-@RequestMapping("/admin/merchant")
+@RequestMapping("/admin/sjgl")
 public class MerchantController {
 
     @Autowired
@@ -58,13 +58,13 @@ public class MerchantController {
     /**
      * 获取商户详情
      *
-     * @param userId 商户ID
+     * @param id 商户ID
      * @return 商户详情
      */
     @ApiOperation(value = "获取商户详情", notes = "根据ID获取商户详细信息")
-    @GetMapping("/detail/{userId}")
-    public BaseResponse<UrUsers> getMerchant(@ApiParam(value = "商户ID", required = true) @PathVariable Long userId) {
-        UrUsers merchant = urUsersService.getById(userId);
+    @PostMapping("/detail")
+    public BaseResponse<UrUsers> getMerchant(@ApiParam(value = "商户ID", required = true) @RequestParam Long id) {
+        UrUsers merchant = urUsersService.getById(id);
         if (merchant == null || merchant.getUserType() != 2) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
         }
@@ -95,20 +95,19 @@ public class MerchantController {
     /**
      * 更新商户
      *
-     * @param userId 商户ID
      * @param merchant 商户信息
      * @return 更新结果
      */
     @ApiOperation(value = "更新商户", notes = "更新商户信息")
-    @PutMapping("/update/{userId}")
-    public BaseResponse<Boolean> updateMerchant(
-            @ApiParam(value = "商户ID", required = true) @PathVariable Long userId,
-            @ApiParam(value = "商户信息", required = true) @RequestBody UrUsers merchant) {
-        UrUsers existing = urUsersService.getById(userId);
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateMerchant(@ApiParam(value = "商户信息", required = true) @RequestBody UrUsers merchant) {
+        if (merchant.getId() == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户ID不能为空");
+        }
+        UrUsers existing = urUsersService.getById(merchant.getId());
         if (existing == null || existing.getUserType() != 2) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
         }
-        merchant.setId(userId);
         boolean update = urUsersService.updateById(merchant);
         return ResultUtils.success(update);
     }
@@ -116,17 +115,17 @@ public class MerchantController {
     /**
      * 删除商户
      *
-     * @param userId 商户ID
+     * @param id 商户ID
      * @return 删除结果
      */
     @ApiOperation(value = "删除商户", notes = "删除商户账号")
-    @DeleteMapping("/delete/{userId}")
-    public BaseResponse<Boolean> deleteMerchant(@ApiParam(value = "商户ID", required = true) @PathVariable Long userId) {
-        UrUsers existing = urUsersService.getById(userId);
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deleteMerchant(@ApiParam(value = "商户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
         if (existing == null || existing.getUserType() != 2) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
         }
-        boolean delete = urUsersService.removeById(userId);
+        boolean delete = urUsersService.removeById(id);
         return ResultUtils.success(delete);
     }
 
@@ -134,18 +133,18 @@ public class MerchantController {
      * 导出商户列表到Excel
      */
     @ApiOperation(value = "导出商户列表", notes = "将商户列表导出为Excel文件")
-    @GetMapping("/export")
+    @PostMapping("/export")
     public void exportMerchants(HttpServletResponse response) throws Exception {
         QueryWrapper<UrUsers> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_type", 2);
         List<UrUsers> merchants = urUsersService.list(queryWrapper);
-        
+
         // 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("UTF-8");
         String fileName = URLEncoder.encode("商户列表", "UTF-8") + ".xlsx";
         response.setHeader("Content-disposition", "attachment;filename=" + fileName);
-        
+
         // 使用EasyExcel导出
         com.alibaba.excel.EasyExcel.write(response.getOutputStream(), UrUsers.class)
                 .sheet("商户列表")

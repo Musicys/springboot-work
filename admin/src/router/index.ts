@@ -1,12 +1,16 @@
-import { Rote } from './../access/config';
+import { Rote } from '@/access/config';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Layout from '@/layout/index.vue';
-import admin from './module/admin';
-import clinet from './module/clinet';
+import glygl from './module/glygl';
+import yhgl from './module/yhgl';
+import sjgl from './module/sjgl';
+import jzgl from './module/jzgl';
 // import { createAsyncComponent } from '@/util/index';
 const pagesconfig = [
-   admin, //管理员
-   clinet //用户
+   glygl, //管理员
+   yhgl, //用户
+   sjgl, //商家管理中心
+   jzgl //兼职岗位管理
 ];
 
 // 2. 配置路由

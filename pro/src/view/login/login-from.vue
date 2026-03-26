@@ -108,8 +108,8 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, reactive } from 'vue';
-import { AdminLogin } from '@/api/user';
-import logo from '@/assets/logo.webp';
+import { adminLogin } from '@/api/login';
+import * as apis from '@/api/login';
 import { useRouter } from 'vue-router';
 const router = useRouter();
 import { adminStore } from '@/store/modules/admin';
@@ -121,21 +121,36 @@ const store = adminStore();
 const rememberMe = ref(false);
 
 const form = reactive({
-   userAccount: 'liwang',
-   userPassword: '12345678'
+   userAccount: 'shanghu',
+   userPassword: '123456'
 });
 
 const handleLogin = async () => {
-   const res = await AdminLogin(form);
+   loading.value = true;
+   try {
+      const res = await apis.adminLogin({
+         username: form.userAccount,
+         password: form.userPassword
+      });
 
-   if (res.code == 0) {
-      router.push('/pages/home');
-      console.log('管理员暑假', store.userinfo);
+      if (res.code == 0) {
+         router.push('/pages/home');
+         console.log('管理员信息', res.data);
 
-      ElMessage.success('欢迎您!!' + res.data.username || '管理员');
-      store.setUserInfo(res.data);
+         ElMessage.success('欢迎您，商家' + res.data.username || '商家');
+         store.setUserInfo(res.data);
 
-      // 保存用户信息到本地存储
+         // 保存用户信息到本地存储
+         localStorage.setItem('adminUser', JSON.stringify(res.data));
+         localStorage.setItem('adminToken', res.data.token);
+      } else {
+         // ElMessage.error(res.message || '登录失败');
+      }
+   } catch (error) {
+      ElMessage.error('登录失败，请稍后重试');
+      console.error('登录错误:', error);
+   } finally {
+      loading.value = false;
    }
 };
 
@@ -212,6 +227,7 @@ onUnmounted(() => {});
    from {
       transform: rotate(0deg);
    }
+
    to {
       transform: rotate(360deg);
    }
@@ -288,6 +304,7 @@ onUnmounted(() => {});
    100% {
       transform: translateY(0px) rotate(45deg);
    }
+
    50% {
       transform: translateY(-20px) rotate(45deg);
    }
@@ -389,6 +406,7 @@ onUnmounted(() => {});
       opacity: 0.5;
       transform: scale(1);
    }
+
    50% {
       opacity: 0.8;
       transform: scale(1.1);
@@ -689,6 +707,7 @@ onUnmounted(() => {});
       opacity: 0;
       transform: translateY(40px) scale(0.95);
    }
+
    to {
       opacity: 1;
       transform: translateY(0) scale(1);
