@@ -165,7 +165,7 @@ async function getPersonPage(fun = () => {}) {
       });
 
       tableData.value = res.data.records;
-      pagination.total = res.data.total;
+      pagination.total = Number(res.data.total);
    } catch (err) {
       console.log(err);
    } finally {

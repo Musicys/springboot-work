@@ -15,7 +15,7 @@ import java.util.Date;
 @TableName(value ="jb_jobs")
 public class JbJobs implements Serializable {
     /**
-     * 
+     *
      */
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -26,32 +26,32 @@ public class JbJobs implements Serializable {
     private Long merchantId;
 
     /**
-     * 
+     *
      */
     private String title;
 
     /**
-     * 
+     *
      */
     private String description;
 
     /**
-     * 
+     *
      */
     private BigDecimal salaryMin;
 
     /**
-     * 
+     *
      */
     private BigDecimal salaryMax;
 
     /**
-     * 
+     *
      */
     private Integer categoryId;
 
     /**
-     * 
+     *
      */
     private String regionCode;
 
@@ -65,23 +65,28 @@ public class JbJobs implements Serializable {
      */
     private Integer status;
 
+
+    /**
+     * 结算周期 '结算周期: 1-日结, 2-周结',
+     */
+    private  Integer  settlement_cycle;
     /**
      * 1:平台担保，2:允许线下
      */
     private Integer tradeMode;
 
     /**
-     * 
+     *
      */
     private Date publishTime;
 
     /**
-     * 
+     *
      */
     private Date expireTime;
 
     /**
-     * 
+     *
      */
     private Date createdAt;
 
@@ -89,14 +94,14 @@ public class JbJobs implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 
+     *
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * 
+     *
      */
     public void setId(Long id) {
         this.id = id;
@@ -117,84 +122,84 @@ public class JbJobs implements Serializable {
     }
 
     /**
-     * 
+     *
      */
     public String getTitle() {
         return title;
     }
 
     /**
-     * 
+     *
      */
     public void setTitle(String title) {
         this.title = title;
     }
 
     /**
-     * 
+     *
      */
     public String getDescription() {
         return description;
     }
 
     /**
-     * 
+     *
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * 
+     *
      */
     public BigDecimal getSalaryMin() {
         return salaryMin;
     }
 
     /**
-     * 
+     *
      */
     public void setSalaryMin(BigDecimal salaryMin) {
         this.salaryMin = salaryMin;
     }
 
     /**
-     * 
+     *
      */
     public BigDecimal getSalaryMax() {
         return salaryMax;
     }
 
     /**
-     * 
+     *
      */
     public void setSalaryMax(BigDecimal salaryMax) {
         this.salaryMax = salaryMax;
     }
 
     /**
-     * 
+     *
      */
     public Integer getCategoryId() {
         return categoryId;
     }
 
     /**
-     * 
+     *
      */
     public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 
     /**
-     * 
+     *
      */
     public String getRegionCode() {
         return regionCode;
     }
 
     /**
-     * 
+     *
      */
     public void setRegionCode(String regionCode) {
         this.regionCode = regionCode;
@@ -243,42 +248,42 @@ public class JbJobs implements Serializable {
     }
 
     /**
-     * 
+     *
      */
     public Date getPublishTime() {
         return publishTime;
     }
 
     /**
-     * 
+     *
      */
     public void setPublishTime(Date publishTime) {
         this.publishTime = publishTime;
     }
 
     /**
-     * 
+     *
      */
     public Date getExpireTime() {
         return expireTime;
     }
 
     /**
-     * 
+     *
      */
     public void setExpireTime(Date expireTime) {
         this.expireTime = expireTime;
     }
 
     /**
-     * 
+     *
      */
     public Date getCreatedAt() {
         return createdAt;
     }
 
     /**
-     * 
+     *
      */
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;

@@ -33,7 +33,6 @@
             </ElForm>
          </div>
       </div>
-
       <!-- 功能按钮 -->
       <div class="menu-box">
          <div class="right">
@@ -182,7 +181,7 @@ async function getPersonPage(fun = () => {}) {
       });
 
       tableData.value = res.data.records;
-      pagination.total = res.data.total;
+      pagination.total = Number(res.data.total);
    } catch (err) {
       console.log(err);
    } finally {

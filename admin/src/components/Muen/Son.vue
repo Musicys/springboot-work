@@ -1,6 +1,6 @@
 <template>
    <div class="son-menu">
-      <div v-for="(item, index) in children" :key="index" class="menu-item-wrapper">
+      <div v-for="(item, index) in filteredChildren" :key="index" class="menu-item-wrapper">
          <div
             class="son-menu-item"
             :class="{ 'is-active': isActive(item), 'has-children': !!item.meta.tabConfig?.isExpand }"
@@ -18,7 +18,7 @@
          <transition name="slide-down">
             <div v-if="expandedItems[item.path] && item.children" class="sub-menu">
                <div
-                  v-for="(child, childIndex) in item.children"
+                  v-for="(child, childIndex) in getFilteredSubItems(item.children)"
                   :key="childIndex"
                   class="sub-menu-item"
                   :class="{ 'is-active': isActiveChild(item, child) }"
@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 const props = defineProps<{
@@ -44,12 +44,14 @@ const props = defineProps<{
          tabConfig: {
             name: string;
             isExpand?: boolean;
+            hideClose?: boolean;
          };
          children?: {
             path: string;
             meta: {
                tabConfig: {
                   name: string;
+                  hideClose?: boolean;
                };
             };
          }[];
@@ -63,6 +65,17 @@ const props = defineProps<{
 const routers = useRouter();
 const route = useRoute();
 const expandedItems = ref<Record<string, boolean>>({});
+
+// 过滤后的子菜单列表
+const filteredChildren = computed(() => {
+   return props.children.filter(item => item.meta.tabConfig?.hideClose !== false);
+});
+
+// 过滤子菜单的子项
+const getFilteredSubItems = (children: any[]) => {
+   if (!children) return [];
+   return children.filter(child => child.meta.tabConfig?.hideClose !== false);
+};
 
 const handleClick = (item: any) => {
    const bol = !!item.meta.tabConfig?.isExpand;
@@ -94,7 +107,7 @@ onMounted(() => {
    console.log('chilSondren', props.children);
 
    // 默认展开所有带有 isExpand 属性的菜单项
-   props.children.forEach(item => {
+   filteredChildren.value.forEach(item => {
       const bol = !!item.meta.tabConfig?.isExpand;
       if (bol) {
          expandedItems.value[item.path] = true;

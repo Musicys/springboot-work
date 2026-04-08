@@ -22,7 +22,7 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: false, // 隐藏关闭按钮
+               hideClose: true, // 隐藏关闭按钮
                keepAlive: false, // 启用缓存
                name: '用户列表'
             }
@@ -35,7 +35,7 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: true, // 隐藏关闭按钮
+               hideClose: false, // 隐藏关闭按钮
                keepAlive: false, // 启用缓存
                name: '添加用户'
             }

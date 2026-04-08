@@ -1,6 +1,6 @@
 <template>
    <DefaultContainer>
-      <div class="title">管理员管理</div>
+      <div class="title">商家管理</div>
       <div class="search-box">
          <div style="padding: 15px 8px">
             <ElForm ref="searchFormRef" :model="searchForm" label-width="120" label-position="left">
@@ -37,7 +37,7 @@
       <!-- 功能按钮 -->
       <div class="menu-box">
          <div class="right">
-            <ElButton type="primary" style="margin-right: 10px" @click="router.push(`/pages/glygl/glygladd`)">
+            <ElButton type="primary" style="margin-right: 10px" @click="router.push(`/pages/sjgl/sjglform`)">
                新增
             </ElButton>
             <ElButton :loading="exportLoading" @click="exportHandler">
@@ -67,16 +67,14 @@
                <span v-else-if="column.prop === 'userType'">
                   {{ getUserTypeText(scope.row.userType) }}
                </span>
-               <!-- 角色格式化 -->
-               <span v-else-if="column.prop === 'userRote'">
-                  {{ getUserRoteText(scope.row.userRote) }}
-               </span>
             </template>
          </ElTableColumn>
-         <ElTableColumn fixed="right" width="180" label="操作">
+         <ElTableColumn fixed="right" width="240" label="操作">
             <template #default="{ row }">
                <ElButton type="primary" link @click="onEdit(row)"> 编辑 </ElButton>
                <ElButton type="primary" link @click="onDeleteList(row)"> 删除 </ElButton>
+               <ElButton v-if="row.status === 1" type="danger" link @click="onBan(row)"> 封禁 </ElButton>
+               <ElButton v-else-if="row.status === 0" type="success" link @click="onUnban(row)"> 解封 </ElButton>
             </template>
          </ElTableColumn>
       </ElTable>
@@ -97,7 +95,7 @@
 import { ElAvatar, ElCol, ElForm, ElFormItem, ElMessage, ElMessageBox, ElRow, ElSelect, ElOption } from 'element-plus';
 import { getCurrentInstance, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import * as apis from '@/api/glygl/glygl.ts';
+import * as apis from '@/api/sjgl/sjgl.ts';
 
 import DefaultContainer from '@/components/DefaultContainer/index.vue';
 
@@ -111,7 +109,6 @@ const columns = ref([
    { prop: 'id', label: 'ID', width: '80' },
    { prop: 'username', label: '用户名', minWidth: '200', tooltip: true },
    { prop: 'userType', label: '用户类型', width: '120' },
-   { prop: 'userRote', label: '角色', width: '120' },
    { prop: 'avatarUrl', label: '头像', width: '100' },
    { prop: 'regionCode', label: '地区代码', width: '150' },
    { prop: 'status', label: '状态', width: '100' },
@@ -154,18 +151,6 @@ function getUserTypeText(userType) {
    }
 }
 
-// 获取角色文本
-function getUserRoteText(userRote) {
-   switch (userRote) {
-      case 0:
-         return '普通管理员';
-      case 1:
-         return '超级管理员';
-      default:
-         return '未知';
-   }
-}
-
 async function getPersonPage(fun = () => {}) {
    try {
       loading.value = true;
@@ -182,7 +167,7 @@ async function getPersonPage(fun = () => {}) {
       });
 
       tableData.value = res.data.records;
-      pagination.total = res.data.total;
+      pagination.total = Number(res.data.total);
    } catch (err) {
       console.log(err);
    } finally {
@@ -206,7 +191,7 @@ onMounted(() => {
 
 function onRowDbClick(row) {
    router.push({
-      path: '/pages/glygl/glygladd',
+      path: '/pages/sjgl/sjglform',
       query: {
          id: row.id,
          show: true
@@ -217,7 +202,7 @@ function onDeleteList(row) {
    ElMessageBox({
       title: '警告',
       type: 'warning',
-      message: '确定要删除该管理员吗?',
+      message: '确定要删除该商家吗?',
       showCancelButton: true,
       confirmButtonText: '确定',
       cancelButtonText: '取消',
@@ -241,6 +226,60 @@ function onDeleteList(row) {
    });
 }
 
+function onBan(row) {
+   ElMessageBox({
+      title: '警告',
+      type: 'warning',
+      message: '确定要封禁该商家吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .banMerchant({ id: row.id })
+               .then(() => {
+                  ElMessage.success('封禁成功');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('封禁失败');
+               });
+         } else {
+            done();
+         }
+      }
+   });
+}
+
+function onUnban(row) {
+   ElMessageBox({
+      title: '提示',
+      type: 'info',
+      message: '确定要解封该商家吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .unbanMerchant({ id: row.id })
+               .then(() => {
+                  ElMessage.success('解封成功');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('解封失败');
+               });
+         } else {
+            done();
+         }
+      }
+   });
+}
+
 const searchFormRef = ref();
 
 function onSizeChange(pageSize) {
@@ -252,7 +291,7 @@ function onSizeChange(pageSize) {
 function onEdit(row) {
    const id = row.id;
    router.push({
-      path: '/pages/glygl/glygladd',
+      path: '/pages/sjgl/sjglform',
       query: {
          id
       }
@@ -279,7 +318,7 @@ async function exportHandler() {
       const url = window.URL.createObjectURL(response);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `管理员列表${new Date().getTime()}.xlsx`;
+      link.download = `商家列表${new Date().getTime()}.xlsx`;
       document.body.appendChild(link);
       link.click();
       // 清理资源
@@ -322,8 +361,9 @@ async function exportHandler() {
 }
 
 .right {
+   width: 100%;
    display: flex;
-   justify-content: center;
+   justify-content: flex-end;
    align-items: center;
 }
 </style>

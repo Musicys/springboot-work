@@ -107,4 +107,77 @@ public class UserController {
 
         return ResultUtils.success(user.getId());
     }
+
+    /**
+     * 获取登录状态
+     *
+     * @param request 请求对象，用于获取Cookie中的JWT令牌
+     * @return 登录状态信息
+     */
+    @ApiOperation(value = "获取登录状态", notes = "获取当前求职者的登录状态")
+    @PostMapping("/getLoginStatus")
+    public BaseResponse<LoginVO> getLoginStatus(javax.servlet.http.HttpServletRequest request) {
+        // 从Cookie中获取token
+        String token = null;
+        javax.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (javax.servlet.http.Cookie cookie : cookies) {
+                if ("Authorization".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        // 验证token
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            Integer userType = jwtUtils.getUserTypeFromToken(token);
+            
+            // 验证用户是否存在且类型正确
+            QueryWrapper<UrUsers> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("id", userId);
+            queryWrapper.eq("user_type", 1);
+            UrUsers user = urUsersService.getOne(queryWrapper);
+            
+            if (user == null) {
+                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
+            }
+            
+            if (user.getStatus() != 1) {
+                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
+            }
+            
+            // 返回用户信息
+            LoginVO loginVO = new LoginVO();
+            loginVO.setUserId(user.getId());
+            loginVO.setUsername(user.getUsername());
+            loginVO.setUserType(user.getUserType());
+            loginVO.setAvatarUrl(user.getAvatarUrl());
+            
+            return ResultUtils.success(loginVO);
+        } catch (Exception e) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
+        }
+    }
+
+    /**
+     * 注销登录
+     *
+     * @param response 响应对象，用于清除Cookie
+     * @return 注销结果
+     */
+    @ApiOperation(value = "注销登录", notes = "清除登录状态，移除认证Cookie")
+    @PostMapping("/logout")
+    public BaseResponse<Boolean> logout(javax.servlet.http.HttpServletResponse response) {
+        // 清除Authorization Cookie
+        String cookieValue = "Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; HttpOnly; Secure=false; SameSite=Strict; Path=/;";
+        response.addHeader("Set-Cookie", cookieValue);
+        
+        return ResultUtils.success(true);
+    }
 }

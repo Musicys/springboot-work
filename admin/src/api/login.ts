@@ -27,3 +27,16 @@ export const adminLogin = async (params: LoginParams): Promise<LoginResponse> =>
    const response = await httpPost('/admin/login', params);
    return response;
 };
+/**
+ * @description 获取用户信息
+ */
+export const getUserInfo = async () => {
+   return await httpPost('/admin/getLoginStatus/info');
+};
+
+/**
+ * @description 退出登录
+ */
+export const logout = async () => {
+   return await httpPost('/admin/logout');
+};

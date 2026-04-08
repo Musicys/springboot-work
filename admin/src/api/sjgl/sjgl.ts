@@ -41,3 +41,17 @@ export function deleteData(params: { id: number }) {
 export function exportData() {
    return httpPost('/admin/sjgl/export');
 }
+
+/**
+ * @description 封禁商户
+ */
+export function banMerchant(params: { id: number }) {
+   return httpPost('/admin/sjgl/ban?id=' + params.id, params);
+}
+
+/**
+ * @description 解封商户
+ */
+export function unbanMerchant(params: { id: number }) {
+   return httpPost('/admin/sjgl/unban?id=' + params.id, params);
+}

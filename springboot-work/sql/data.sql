@@ -109,25 +109,28 @@ create table jb_home_configs
 )
     comment '首页装修配置表';
 
-create table jb_jobs
+
+CREATE TABLE jb_jobs
 (
-    id             bigint auto_increment
-        primary key,
-    merchant_id    bigint                             not null comment '发布者 ID',
-    title          varchar(128)                       not null,
-    description    text                               null,
-    salary_min     decimal(10, 2)                     null,
-    salary_max     decimal(10, 2)                     null,
-    category_id    int                                not null,
-    region_code    varchar(20)                        not null,
-    deposit_amount decimal(10, 2)                     not null comment '押金金额 (商家担保)',
-    status         tinyint  default 1                 null comment '1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架',
-    trade_mode     tinyint  default 1                 null comment '1:平台担保，2:允许线下',
-    publish_time   datetime                           null,
-    expire_time    datetime                           null,
-    created_at     datetime default CURRENT_TIMESTAMP null
-)
-    comment '兼职岗位表';
+    id               bigint AUTO_INCREMENT PRIMARY KEY,
+    merchant_id      bigint                           NOT NULL COMMENT '发布者 ID',
+    title            varchar(128)                     NOT NULL,
+    description      text                             NULL,
+    salary_min       decimal(10, 2)                   NULL,
+    salary_max       decimal(10, 2)                   NULL,
+    -- 新增字段开始
+    settlement_cycle tinyint  DEFAULT 1               NOT NULL COMMENT '结算周期: 1-日结, 2-周结',
+    -- 新增字段结束
+    category_id      int                              NOT NULL,
+    region_code      varchar(20)                      NOT NULL,
+    deposit_amount   decimal(10, 2)                   NOT NULL COMMENT '押金金额 (商家担保)',
+    status           tinyint  DEFAULT 1               NULL COMMENT '1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架',
+    trade_mode       tinyint  DEFAULT 1               NULL COMMENT '1:平台担保，2:允许线下',
+    publish_time     datetime                         NULL,
+    expire_time      datetime                         NULL,
+    created_at       datetime DEFAULT CURRENT_TIMESTAMP NULL
+) COMMENT '兼职岗位表';
+
 
 create index idx_merchant
     on jb_jobs (merchant_id);
@@ -262,6 +265,13 @@ create table ur_merchant_profiles
     parent_merchant_id bigint                             null comment '父账号 ID (实现连坐机制，子账号指向主账号)',
     is_sub_account     tinyint  default 0                 null comment '0:主账号, 1:子账号',
     contact_phone      varchar(20)                        null,
+    location           varchar(255)                       null comment '商家位置',
+    legal_person       varchar(64)                        null comment '法人姓名',
+    legal_id_card      varchar(32)                        null comment '法人身份证号',
+    company_images     json                               null comment '公司图片数组 JSON',
+    registered_capital decimal(18, 4)                     null comment '注册成本',
+    company_address    varchar(255)                       null comment '公司地址',
+    company_intro      text                               null comment '公司简介',
     created_at         datetime default CURRENT_TIMESTAMP null
 )
     comment '商家档案表';
@@ -337,7 +347,7 @@ create table wl_transaction_logs
     description       varchar(255)                       null,
     created_at        datetime default CURRENT_TIMESTAMP null
 )
-    comment '交易流水表';
+    comment '交易流水表'
 
 create index idx_user_time
     on wl_transaction_logs (user_id, created_at);

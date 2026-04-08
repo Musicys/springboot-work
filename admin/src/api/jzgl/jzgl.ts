@@ -41,3 +41,10 @@ export function deleteData(params: { id: number }) {
 export function exportData() {
    return httpPost('/admin/job/export');
 }
+
+/**
+ * @description 审核通过兼职岗位
+ */
+export function approveJob(params: { id: number }) {
+   return httpPost('/admin/job/approve?jobId=' + params.id, params);
+}

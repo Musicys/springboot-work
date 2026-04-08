@@ -112,7 +112,7 @@ async function updateFormDetaill() {
 
 async function onDetail(id) {
    try {
-      const res = await apis.getDetail({ id });
+      const res = await apis.getDetail({ id: Number(id) });
       if (res.data) {
          form.value = res.data;
       }

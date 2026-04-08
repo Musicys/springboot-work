@@ -22,7 +22,7 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: false, // 隐藏关闭按钮
+               hideClose: true, // 隐藏关闭按钮
                keepAlive: true, // 启用缓存
                name: '商家列表'
             }
@@ -35,7 +35,33 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
+               hideClose: false, // 隐藏关闭按钮
+               keepAlive: false, // 启用缓存
+               name: '添加商家'
+            }
+         }
+      },
+      {
+         path: 'shsjlist',
+         name: 'shsjlist',
+         component: () => import('@/view/sjgl/shsj/index.vue'),
+         meta: {
+            icon: 'Collection',
+            tabConfig: {
                hideClose: true, // 隐藏关闭按钮
+               keepAlive: true, // 启用缓存
+               name: '审核商家列表'
+            }
+         }
+      },
+      {
+         path: 'sjglform',
+         name: 'shsjform',
+         component: () => import('@/view/sjgl/shsj/form.vue'),
+         meta: {
+            icon: 'Collection',
+            tabConfig: {
+               hideClose: false, // 隐藏关闭按钮
                keepAlive: false, // 启用缓存
                name: '添加商家'
             }

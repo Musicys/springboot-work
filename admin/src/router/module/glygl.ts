@@ -8,7 +8,7 @@ export default {
       icon: 'Management',
       setup: true, //是否是菜单
       tabConfig: {
-         hideClose: false, // 隐藏关闭按钮
+         hideClose: true, // 隐藏关闭按钮
          keepAlive: true, // 启用缓存
          name: '管理员管理中心',
          access: Rote.admin
@@ -22,7 +22,7 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: false, // 隐藏关闭按钮
+               hideClose: true, // 隐藏关闭按钮
                keepAlive: true, // 启用缓存
                name: '管理员列表'
             }

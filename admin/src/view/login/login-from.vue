@@ -23,15 +23,18 @@
             <div class="login-content">
                <div class="logo-section">
                   <div class="logo-container">
-                     <img :src="logo" alt="后台管理系统 logo" class="logo-img" />
+                     <img
+                        src="https://ts1.tc.mm.bing.net/th/id/OIP-C.vOMCvqZv_95qxq8E1MaCOwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
+                        alt="后台管理系统 logo"
+                        class="logo-img" />
                      <div class="logo-glow"></div>
                   </div>
                   <h1 class="system-title">{{ systemTitle }}</h1>
-                  <p class="system-subtitle">Professional Admin System</p>
+                  <p class="system-subtitle">Super Administrator System</p>
                </div>
                <div class="welcome-text">
-                  <h2>欢迎登录</h2>
-                  <p>请输入您的账号信息进行登录</p>
+                  <h2>学生兼职管理员后台系统</h2>
+                  <p>南昌交通学院版</p>
                </div>
                <div class="feature-list">
                   <div class="feature-item">
@@ -54,7 +57,7 @@
          <div class="login-right">
             <div class="form-container">
                <div class="form-header">
-                  <h2 class="form-title">用户登录</h2>
+                  <h2 class="form-title">管理员登录</h2>
                   <p class="form-subtitle">请输入您的登录信息</p>
                </div>
 

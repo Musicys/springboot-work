@@ -23,15 +23,18 @@
             <div class="login-content">
                <div class="logo-section">
                   <div class="logo-container">
-                     <img :src="logo" alt="后台管理系统 logo" class="logo-img" />
+                     <img
+                        src="https://ts3.tc.mm.bing.net/th/id/OIP-C.y6rdSCGpxbfeb8Rd1CpSuwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3"
+                        alt="后台管理系统 logo"
+                        class="logo-img" />
                      <div class="logo-glow"></div>
                   </div>
                   <h1 class="system-title">{{ systemTitle }}</h1>
                   <p class="system-subtitle">Professional Admin System</p>
                </div>
                <div class="welcome-text">
-                  <h2>欢迎登录</h2>
-                  <p>请输入您的账号信息进行登录</p>
+                  <h2>学生兼职系统商家后台</h2>
+                  <p>南昌交通学院版</p>
                </div>
                <div class="feature-list">
                   <div class="feature-item">
@@ -99,6 +102,12 @@
                         <span v-else>登录中...</span>
                      </el-button>
                   </el-form-item>
+                  <el-button type="info" class="register-btn" size="large" @click="goToRegister"> 立即注册 </el-button>
+                  <el-form-item>
+                     <div class="register-section">
+                        <p class="register-tip">还没有账号？点击下方按钮立即注册</p>
+                     </div>
+                  </el-form-item>
                </el-form>
             </div>
          </div>
@@ -152,6 +161,11 @@ const handleLogin = async () => {
    } finally {
       loading.value = false;
    }
+};
+
+// 跳转到注册页面
+const goToRegister = () => {
+   router.push('/register');
 };
 
 // 表单验证规则
@@ -634,6 +648,43 @@ onUnmounted(() => {});
 
    &:hover {
       color: #764ba2;
+   }
+}
+
+.register-section {
+   text-align: center;
+   margin-top: 20px;
+}
+
+.register-tip {
+   font-size: 14px;
+   color: #666;
+   margin-bottom: 15px;
+   font-weight: 500;
+}
+
+.register-btn {
+   width: 100%;
+
+   height: 52px;
+   border-radius: 12px;
+   font-size: 16px;
+   font-weight: 600;
+   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+   border: none;
+   box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+   cursor: pointer;
+   transition: all 0.3s ease;
+   opacity: 0.8;
+   position: relative;
+
+   &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(79, 172, 254, 0.4);
+
+      &::before {
+         left: 100%;
+      }
    }
 }
 

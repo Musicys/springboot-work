@@ -63,6 +63,9 @@ public class AdminJobController {
         }
         
         Page<JbJobs> result = jbJobsService.page(pageInfo, queryWrapper);
+        result.setSize(searchWrapper.getPage().getPageSize());
+        result.setTotal(jbJobsService.count(queryWrapper));
+        result.setCurrent(searchWrapper.getPage().getPageNum());
         return ResultUtils.success(result);
     }
 
@@ -159,6 +162,29 @@ public class AdminJobController {
         com.alibaba.excel.EasyExcel.write(response.getOutputStream(), JbJobs.class)
                 .sheet("兼职岗位列表")
                 .doWrite(jobs);
+    }
+
+    /**
+     * 审核通过兼职岗位
+     *
+     * @param jobId 兼职岗位ID
+     * @return 审核结果
+     */
+    @ApiOperation(value = "审核通过兼职岗位", notes = "将兼职岗位状态从发布中改为进行中")
+    @PostMapping("/approve")
+    public BaseResponse<Boolean> approveJob(@ApiParam(value = "兼职岗位ID", required = true) @RequestParam Long jobId) {
+        JbJobs existing = jbJobsService.getById(jobId);
+        if (existing == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "兼职岗位不存在");
+        }
+        if (existing.getStatus() != 1) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有发布中的岗位才能审核通过");
+        }
+        JbJobs job = new JbJobs();
+        job.setId(jobId);
+        job.setStatus(2);
+        boolean update = jbJobsService.updateById(job);
+        return ResultUtils.success(update);
     }
 
 }

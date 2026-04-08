@@ -11,10 +11,9 @@
 
 <style lang="scss" scoped>
 .main-container {
-   padding: 5px;
    width: 100%;
    height: 100%;
-   overflow: hidden;
+   overflow-y: auto;
 }
 
 // 路由过渡动画

@@ -52,6 +52,9 @@ public class MerchantController {
             queryWrapper.eq("status", searchWrapper.getParams().getStatus());
         }
         Page<UrUsers> result = urUsersService.page(pageInfo, queryWrapper);
+        result.setSize(searchWrapper.getPage().getPageSize());
+        result.setTotal(urUsersService.count(queryWrapper));
+        result.setCurrent(searchWrapper.getPage().getPageNum());
         return ResultUtils.success(result);
     }
 
@@ -149,6 +152,34 @@ public class MerchantController {
         com.alibaba.excel.EasyExcel.write(response.getOutputStream(), UrUsers.class)
                 .sheet("商户列表")
                 .doWrite(merchants);
+    }
+
+    @ApiOperation(value = "封禁商户", notes = "封禁商户账号")
+    @PostMapping("/ban")
+    public BaseResponse<Boolean> banMerchant(@ApiParam(value = "商户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
+        if (existing == null || existing.getUserType() != 2) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
+        }
+        UrUsers merchant = new UrUsers();
+        merchant.setId(id);
+        merchant.setStatus(0);
+        boolean update = urUsersService.updateById(merchant);
+        return ResultUtils.success(update);
+    }
+
+    @ApiOperation(value = "解封商户", notes = "解封商户账号")
+    @PostMapping("/unban")
+    public BaseResponse<Boolean> unbanMerchant(@ApiParam(value = "商户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
+        if (existing == null || existing.getUserType() != 2) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
+        }
+        UrUsers merchant = new UrUsers();
+        merchant.setId(id);
+        merchant.setStatus(1);
+        boolean update = urUsersService.updateById(merchant);
+        return ResultUtils.success(update);
     }
 
 }

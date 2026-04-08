@@ -12,9 +12,17 @@ export const adminStore = defineStore(
       const setUserInfo = (data: Admin) => {
          userinfo.value = data;
       };
+
+      const clearUserInfo = () => {
+         userinfo.value = {
+            login: 'NO_LOGIN'
+         };
+      };
+
       return {
          userinfo,
-         setUserInfo
+         setUserInfo,
+         clearUserInfo
       };
    },
    {

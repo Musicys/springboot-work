@@ -52,23 +52,39 @@ public class AdminManagementController {
             queryWrapper.eq("status", searchWrapper.getParams().getStatus());
         }
         Page<UrUsers> result = urUsersService.page(pageInfo, queryWrapper);
+        result.setSize(searchWrapper.getPage().getPageSize());
+        result.setTotal(urUsersService.count(queryWrapper));
+        result.setCurrent(searchWrapper.getPage().getPageNum());
         return ResultUtils.success(result);
     }
 
     /**
      * 获取管理员详情
      *
-     * @param userId 管理员ID
+     * @param request 请求参数
      * @return 管理员详情
      */
     @ApiOperation(value = "获取管理员详情", notes = "根据ID获取管理员详细信息")
     @PostMapping("/detail")
-    public BaseResponse<UrUsers> getAdmin(@ApiParam(value = "管理员ID", required = true) @RequestParam Long userId) {
-        UrUsers admin = urUsersService.getById(userId);
+    public BaseResponse<UrUsers> getAdmin(@ApiParam(value = "请求参数", required = true) Long id) {
+        UrUsers admin = urUsersService.getById(id);
         if (admin == null || admin.getUserType() != 3) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "管理员不存在");
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "管理员权限不足");
         }
         return ResultUtils.success(admin);
+    }
+
+    // 详情请求参数类
+    private static class DetailRequest {
+        private Long userId;
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
     }
 
     /**
@@ -136,17 +152,17 @@ public class AdminManagementController {
     /**
      * 删除管理员
      *
-     * @param userId 管理员ID
+     * @param request 请求参数
      * @return 删除结果
      */
     @ApiOperation(value = "删除管理员", notes = "删除管理员账号")
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteAdmin(@ApiParam(value = "管理员ID", required = true) @RequestParam Long userId) {
-        UrUsers existing = urUsersService.getById(userId);
+    public BaseResponse<Boolean> deleteAdmin(@ApiParam(value = "请求参数", required = true) @RequestBody DetailRequest request) {
+        UrUsers existing = urUsersService.getById(request.getUserId());
         if (existing == null || existing.getUserType() != 3) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "管理员不存在");
         }
-        boolean delete = urUsersService.removeById(userId);
+        boolean delete = urUsersService.removeById(request.getUserId());
         return ResultUtils.success(delete);
     }
 

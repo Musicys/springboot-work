@@ -52,6 +52,9 @@ public class AdminUserController {
             queryWrapper.eq("status", searchWrapper.getParams().getStatus());
         }
         Page<UrUsers> result = urUsersService.page(pageInfo, queryWrapper);
+        result.setSize(searchWrapper.getPage().getPageSize());
+        result.setTotal(urUsersService.count(queryWrapper));
+        result.setCurrent(searchWrapper.getPage().getPageNum());
         return ResultUtils.success(result);
     }
 
@@ -149,6 +152,34 @@ public class AdminUserController {
         com.alibaba.excel.EasyExcel.write(response.getOutputStream(), UrUsers.class)
                 .sheet("用户列表")
                 .doWrite(users);
+    }
+
+    @ApiOperation(value = "封禁用户", notes = "封禁用户账号")
+    @PostMapping("/ban")
+    public BaseResponse<Boolean> banUser(@ApiParam(value = "用户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
+        if (existing == null || existing.getUserType() != 1) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        UrUsers user = new UrUsers();
+        user.setId(id);
+        user.setStatus(0);
+        boolean update = urUsersService.updateById(user);
+        return ResultUtils.success(update);
+    }
+
+    @ApiOperation(value = "解封用户", notes = "解封用户账号")
+    @PostMapping("/unban")
+    public BaseResponse<Boolean> unbanUser(@ApiParam(value = "用户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
+        if (existing == null || existing.getUserType() != 1) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        UrUsers user = new UrUsers();
+        user.setId(id);
+        user.setStatus(1);
+        boolean update = urUsersService.updateById(user);
+        return ResultUtils.success(update);
     }
 
 }

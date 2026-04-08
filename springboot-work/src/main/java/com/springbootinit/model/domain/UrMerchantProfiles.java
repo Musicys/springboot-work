@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -43,6 +44,41 @@ public class UrMerchantProfiles implements Serializable {
      * 
      */
     private String contactPhone;
+
+    /**
+     * 商家位置
+     */
+    private String location;
+
+    /**
+     * 法人姓名
+     */
+    private String legalPerson;
+
+    /**
+     * 法人身份证号
+     */
+    private String legalIdCard;
+
+    /**
+     * 公司图片数组 JSON
+     */
+    private String companyImages;
+
+    /**
+     * 注册成本
+     */
+    private BigDecimal registeredCapital;
+
+    /**
+     * 公司地址
+     */
+    private String companyAddress;
+
+    /**
+     * 公司简介
+     */
+    private String companyIntro;
 
     /**
      * 
@@ -134,6 +170,104 @@ public class UrMerchantProfiles implements Serializable {
      */
     public void setContactPhone(String contactPhone) {
         this.contactPhone = contactPhone;
+    }
+
+    /**
+     * 商家位置
+     */
+    public String getLocation() {
+        return location;
+    }
+
+    /**
+     * 商家位置
+     */
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    /**
+     * 法人姓名
+     */
+    public String getLegalPerson() {
+        return legalPerson;
+    }
+
+    /**
+     * 法人姓名
+     */
+    public void setLegalPerson(String legalPerson) {
+        this.legalPerson = legalPerson;
+    }
+
+    /**
+     * 法人身份证号
+     */
+    public String getLegalIdCard() {
+        return legalIdCard;
+    }
+
+    /**
+     * 法人身份证号
+     */
+    public void setLegalIdCard(String legalIdCard) {
+        this.legalIdCard = legalIdCard;
+    }
+
+    /**
+     * 公司图片数组 JSON
+     */
+    public String getCompanyImages() {
+        return companyImages;
+    }
+
+    /**
+     * 公司图片数组 JSON
+     */
+    public void setCompanyImages(String companyImages) {
+        this.companyImages = companyImages;
+    }
+
+    /**
+     * 注册成本
+     */
+    public BigDecimal getRegisteredCapital() {
+        return registeredCapital;
+    }
+
+    /**
+     * 注册成本
+     */
+    public void setRegisteredCapital(BigDecimal registeredCapital) {
+        this.registeredCapital = registeredCapital;
+    }
+
+    /**
+     * 公司地址
+     */
+    public String getCompanyAddress() {
+        return companyAddress;
+    }
+
+    /**
+     * 公司地址
+     */
+    public void setCompanyAddress(String companyAddress) {
+        this.companyAddress = companyAddress;
+    }
+
+    /**
+     * 公司简介
+     */
+    public String getCompanyIntro() {
+        return companyIntro;
+    }
+
+    /**
+     * 公司简介
+     */
+    public void setCompanyIntro(String companyIntro) {
+        this.companyIntro = companyIntro;
     }
 
     /**

@@ -31,7 +31,8 @@
                   <ElCol :span="8">
                      <ElFormItem label="状态：" prop="status">
                         <ElSelect v-model="searchForm.status" clearable placeholder="请选择" style="width: 100%">
-                           <ElOption label="发布中" value="1" />
+                           <ElOption label="未审核" value="0" />
+                           <ElOption label="已审核" value="1" />
                            <ElOption label="进行中" value="2" />
                            <ElOption label="已完成" value="3" />
                            <ElOption label="已关闭" value="4" />
@@ -89,10 +90,11 @@
                </span>
             </template>
          </ElTableColumn>
-         <ElTableColumn fixed="right" width="180" label="操作">
+         <ElTableColumn fixed="right" width="260" label="操作">
             <template #default="{ row }">
                <ElButton type="primary" link @click="onEdit(row)"> 编辑 </ElButton>
                <ElButton type="primary" link @click="onDeleteList(row)"> 删除 </ElButton>
+               <ElButton v-if="row.status === 0" type="success" link @click="onApprove(row)"> 审核通过 </ElButton>
             </template>
          </ElTableColumn>
       </ElTable>
@@ -136,7 +138,47 @@ const columns = ref([
    { prop: 'tradeMode', label: '交易模式', width: '100' },
    { prop: 'createdAt', label: '创建时间', width: '180', tooltip: true }
 ]);
-const tableData = ref([]);
+const tableData = ref([
+   {
+      id: 1,
+      title: '兼职服务员',
+      merchantId: 1,
+      categoryId: 1,
+      regionCode: '110000',
+      salaryMin: 100,
+      salaryMax: 150,
+      depositAmount: 50,
+      status: 0,
+      tradeMode: 1,
+      createdAt: '2026-01-01 10:00:00'
+   },
+   {
+      id: 2,
+      title: '兼职家教',
+      merchantId: 1,
+      categoryId: 2,
+      regionCode: '110000',
+      salaryMin: 200,
+      salaryMax: 300,
+      depositAmount: 100,
+      status: 1,
+      tradeMode: 1,
+      createdAt: '2026-01-02 11:00:00'
+   },
+   {
+      id: 3,
+      title: '兼职发传单',
+      merchantId: 2,
+      categoryId: 3,
+      regionCode: '110000',
+      salaryMin: 80,
+      salaryMax: 100,
+      depositAmount: 0,
+      status: 0,
+      tradeMode: 2,
+      createdAt: '2026-01-03 12:00:00'
+   }
+]);
 const loading = ref(false);
 const searchForm = ref({
    title: null,
@@ -150,8 +192,10 @@ const searchForm = ref({
 // 获取状态文本
 function getStatusText(status) {
    switch (status) {
+      case 0:
+         return '未审核';
       case 1:
-         return '发布中';
+         return '已审核';
       case 2:
          return '进行中';
       case 3:
@@ -193,7 +237,7 @@ async function getPersonPage(fun = () => {}) {
       });
 
       tableData.value = res.data.records;
-      pagination.total = res.data.total;
+      pagination.total = Number(res.data.total);
    } catch (err) {
       console.log(err);
    } finally {
@@ -245,6 +289,33 @@ function onDeleteList(row) {
                   ElMessage.error('删除失败');
                })
                .finally(() => {});
+         } else {
+            done();
+         }
+      }
+   });
+}
+
+function onApprove(row) {
+   ElMessageBox({
+      title: '提示',
+      type: 'info',
+      message: '确定要审核通过该兼职岗位吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .approveJob({ id: row.id })
+               .then(() => {
+                  ElMessage.success('审核通过成功');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('审核通过失败');
+               });
          } else {
             done();
          }

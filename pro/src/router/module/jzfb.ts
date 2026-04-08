@@ -1,8 +1,8 @@
 import { Rote } from '@/access/config';
 
 export default {
-   path: 'glygl',
-   name: 'glygl',
+   path: 'jzfb',
+   name: 'jzfb',
    component: () => import('@/components/router.vue'),
    meta: {
       icon: 'Management',
@@ -10,38 +10,37 @@ export default {
       tabConfig: {
          hideClose: false, // 隐藏关闭按钮
          keepAlive: true, // 启用缓存
-         name: '管理员管理中心',
+         name: '兼职发布管理',
          access: Rote.admin
       }
    },
    children: [
       {
-         path: 'glygllist',
-         name: 'glyglList',
-         component: () => import('@/view/glygl/glygl/index.vue'),
+         path: 'jzfblist',
+         name: 'jzfblist',
+         component: () => import('@/view/jzfb/jzfb/index.vue'),
          meta: {
             icon: 'Collection',
             tabConfig: {
                hideClose: false, // 隐藏关闭按钮
                keepAlive: true, // 启用缓存
-               name: '管理员列表'
+               name: '兼职发布列表'
             }
          }
       },
       {
-         path: 'glygladd',
-         name: 'glyglAdd',
-         component: () => import('@/view/glygl/glygl/form.vue'),
+         path: 'jzfbform',
+         name: 'jzfbform',
+         component: () => import('@/view/jzfb/jzfb/form.vue'),
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: false, // 隐藏关闭按钮
-               keepAlive: true, // 启用缓存
-               name: '添加管理员账号'
+               hideClose: true, // 隐藏关闭按钮
+               keepAlive: false, // 启用缓存
+               name: '添加兼职发布'
             }
          }
       }
-
       // {
       //    path: 'system',
       //    name: 'sytem',

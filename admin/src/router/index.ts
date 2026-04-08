@@ -5,12 +5,16 @@ import glygl from './module/glygl';
 import yhgl from './module/yhgl';
 import sjgl from './module/sjgl';
 import jzgl from './module/jzgl';
+import yydd from './module/yydd';
+import tszc from './module/tszc';
 // import { createAsyncComponent } from '@/util/index';
 const pagesconfig = [
    glygl, //管理员
    yhgl, //用户
    sjgl, //商家管理中心
-   jzgl //兼职岗位管理
+   yydd, //异议订单管理中心
+   jzgl, //兼职岗位管理
+   tszc //投诉仲裁管理
 ];
 
 // 2. 配置路由

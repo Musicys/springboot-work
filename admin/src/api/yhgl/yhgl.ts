@@ -41,3 +41,17 @@ export function deleteData(params: { id: number }) {
 export function exportData() {
    return httpPost('/admin/yhgl/export');
 }
+
+/**
+ * @description 封禁用户
+ */
+export function banUser(params: { id: number }) {
+   return httpPost('/admin/yhgl/ban?id=' + params.id, params);
+}
+
+/**
+ * @description 解封用户
+ */
+export function unbanUser(params: { id: number }) {
+   return httpPost('/admin/yhgl/unban?id=' + params.id, params);
+}

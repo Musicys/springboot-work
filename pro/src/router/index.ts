@@ -1,14 +1,19 @@
 import { Rote } from '@/access/config';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Layout from '@/layout/index.vue';
-import glygl from './module/glygl';
-import yhgl from './module/yhgl';
-import sjgl from './module/sjgl';
+
+import jzfb from './module/jzfb';
+import sjxx from './module/sjxx';
+import sjjs from './module/sjjs';
+import sjnt from './module/sjnt';
 // import { createAsyncComponent } from '@/util/index';
 const pagesconfig = [
-   glygl, //管理员
-   yhgl, //用户
-   sjgl //商家管理中心
+   // yhgl, //用户
+   // sjgl //商家管理中心
+   jzfb,
+   sjxx,
+   sjjs,
+   sjnt
 ];
 
 // 2. 配置路由
@@ -21,6 +26,11 @@ const routes = [
       path: '/login',
       name: 'loginFrom',
       component: () => import('@/view/login/login-from.vue')
+   },
+   {
+      path: '/register',
+      name: 'registerFrom',
+      component: () => import('@/view/register/register-from.vue')
    },
 
    {
@@ -51,7 +61,7 @@ const routes = [
                tabConfig: {
                   hideClose: true, // 隐藏关闭按钮
                   keepAlive: true, // 启用缓存
-                  name: '数据概览',
+                  name: '商家数据概述',
                   access: Rote.user
                }
             }

@@ -52,7 +52,7 @@
          <!-- 用户下拉菜单 -->
          <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
-               <el-avatar :size="40" :src="userInfo.avatarurl" class="user-avatar" />
+               <el-avatar :size="40" :src="userInfo.avatarUrl" class="user-avatar" />
                <div class="user-details" v-show="!isMobile">
                   <span class="user-name">{{ userInfo.username }}</span>
                   <span class="user-email">{{ userInfo.email }}</span>
@@ -180,6 +180,9 @@ const handleCommand = async (command: string) => {
             });
 
             // 清除用户信息
+            store.clearUserInfo();
+            // 跳转到登录页
+            router.push({ path: '/login' });
          } catch {
             // 用户取消
          }

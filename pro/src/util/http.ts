@@ -11,10 +11,11 @@ const instance = axios.create({
 instance.interceptors.request.use(
    config => {
       // 显示 loading
-
       // 从本地存储获取token
       const token = localStorage.getItem('adminToken');
       if (token) {
+         console.log('token', token);
+
          config.headers.Authorization = `Bearer ${token}`;
       }
 
@@ -80,7 +81,7 @@ export const httpPost = (url, data, file = false) => {
          }
       });
    }
-   return instance.post(url, data);
+   return instance.post(url, data, { withCredentials: true });
 };
 
 /**

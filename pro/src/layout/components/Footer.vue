@@ -52,7 +52,7 @@
          <!-- 用户下拉菜单 -->
          <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
-               <el-avatar :size="40" :src="userInfo.avatarurl" class="user-avatar" />
+               <el-avatar :size="40" :src="userInfo.avatarUrl" class="user-avatar" />
                <div class="user-details" v-show="!isMobile">
                   <span class="user-name">{{ userInfo.username }}</span>
                   <span class="user-email">{{ userInfo.email }}</span>
@@ -162,6 +162,11 @@ const toggleFullscreen = () => {
    }
 };
 
+// 清除Cookie
+const clearCookie = (name: string) => {
+   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
+
 // 处理下拉菜单命令
 const handleCommand = async (command: string) => {
    switch (command) {
@@ -180,6 +185,11 @@ const handleCommand = async (command: string) => {
             });
 
             // 清除用户信息
+            store.clearUserInfo();
+            // 清除Cookie
+            clearCookie('Authorization');
+            // 重定向到登录页面
+            router.push('/login');
          } catch {
             // 用户取消
          }

@@ -1,8 +1,8 @@
 <template>
    <DefaultContainer>
-      <div class="title">{{ show ? '管理员详情' : id ? '编辑管理员' : '新增管理员' }}</div>
+      <div class="title">{{ show ? '兼职岗位详情' : id ? '编辑兼职岗位' : '发布新兼职' }}</div>
       <div class="content">
-         <glygl-form ref="formRef" :id="id" :show="show" />
+         <jzfb-form ref="formRef" :id="id" :show="show" />
       </div>
       <div class="footer" v-if="!show">
          <ElButton @click="router.back()"> 取消 </ElButton>
@@ -17,7 +17,7 @@ import { ref, getCurrentInstance, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 import DefaultContainer from '@/components/DefaultContainer/index.vue';
-import glyglForm from './components/glygl-form.vue';
+import jzfbForm from './components/jzgl-form.vue';
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
@@ -32,7 +32,7 @@ async function onSave() {
    try {
       await formRef.value.onSave();
       ElMessage.success('保存成功');
-      router.push('/pages/glygl/glygllist');
+      router.push('/pages/jzfb/jzfblist');
    } catch (error) {
       console.error('保存失败:', error);
       ElMessage.error('保存失败，请稍后重试');

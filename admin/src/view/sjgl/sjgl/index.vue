@@ -69,10 +69,12 @@
                </span>
             </template>
          </ElTableColumn>
-         <ElTableColumn fixed="right" width="180" label="操作">
+         <ElTableColumn fixed="right" width="240" label="操作">
             <template #default="{ row }">
                <ElButton type="primary" link @click="onEdit(row)"> 编辑 </ElButton>
                <ElButton type="primary" link @click="onDeleteList(row)"> 删除 </ElButton>
+               <ElButton v-if="row.status === 1" type="danger" link @click="onBan(row)"> 封禁 </ElButton>
+               <ElButton v-else-if="row.status === 0" type="success" link @click="onUnban(row)"> 解封 </ElButton>
             </template>
          </ElTableColumn>
       </ElTable>
@@ -165,7 +167,7 @@ async function getPersonPage(fun = () => {}) {
       });
 
       tableData.value = res.data.records;
-      pagination.total = res.data.total;
+      pagination.total = Number(res.data.total);
    } catch (err) {
       console.log(err);
    } finally {
@@ -217,6 +219,60 @@ function onDeleteList(row) {
                   ElMessage.error('删除失败');
                })
                .finally(() => {});
+         } else {
+            done();
+         }
+      }
+   });
+}
+
+function onBan(row) {
+   ElMessageBox({
+      title: '警告',
+      type: 'warning',
+      message: '确定要封禁该商家吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .banMerchant({ id: row.id })
+               .then(() => {
+                  ElMessage.success('封禁成功');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('封禁失败');
+               });
+         } else {
+            done();
+         }
+      }
+   });
+}
+
+function onUnban(row) {
+   ElMessageBox({
+      title: '提示',
+      type: 'info',
+      message: '确定要解封该商家吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .unbanMerchant({ id: row.id })
+               .then(() => {
+                  ElMessage.success('解封成功');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('解封失败');
+               });
          } else {
             done();
          }
