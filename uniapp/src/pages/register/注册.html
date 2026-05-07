@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>注册 - 兼职系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3B82F6",
+              secondary: "#10B981",
+              neutral: "#64748B",
+              light: "#F8FAFC",
+              dark: "#1E293B",
+            },
+            fontFamily: {
+              sans: ["PingFang SC", "Helvetica Neue", "Arial", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .touch-active {
+          @apply active:opacity-80 active:scale-95 transition-all duration-200;
+        }
+        .input-style {
+          @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+        }
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面容器 -->
+    <div id="appContainer">
+      <!-- 顶部导航 -->
+      <header
+        class="sticky top-0 z-50 bg-white shadow-sm px-4 py-3 flex items-center justify-between"
+      >
+        <a
+          href="login.html"
+          class="w-9 h-9 flex items-center justify-center touch-active"
+        >
+          <i class="fa fa-arrow-left text-gray-700"></i>
+        </a>
+        <h1 class="text-base font-bold">用户注册</h1>
+        <div class="w-9 h-9"></div>
+      </header>
+
+      <!-- 注册表单 -->
+      <div class="p-6 space-y-6">
+        <!-- 头像上传 -->
+        <div class="flex flex-col items-center">
+          <div class="relative w-24 h-24 mb-4">
+            <img
+              id="avatarPreview"
+              src="https://picsum.photos/seed/avatar/200/200"
+              alt="头像"
+              class="w-full h-full rounded-full object-cover border-2 border-gray-200"
+            />
+            <input type="file" id="avatar" class="hidden" />
+            <label
+              for="avatar"
+              class="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center touch-active"
+            >
+              <i class="fa fa-camera"></i>
+            </label>
+          </div>
+          <span class="text-sm text-neutral">点击更换头像</span>
+        </div>
+
+        <!-- 必要信息 -->
+        <div class="space-y-4">
+          <h2 class="text-base font-bold flex items-center">
+            <i class="fa fa-info-circle text-primary mr-2"></i>
+            必要信息
+          </h2>
+
+          <!-- 学号 -->
+          <div class="space-y-2">
+            <label for="studentId" class="block text-sm font-medium text-dark">
+              <i class="fa fa-id-card text-primary mr-1"></i>学号
+            </label>
+            <input
+              type="text"
+              id="studentId"
+              class="input-style"
+              placeholder="请输入学号"
+              required
+            />
+          </div>
+
+          <!-- 账号（手机号） -->
+          <div class="space-y-2">
+            <label for="mobile" class="block text-sm font-medium text-dark">
+              <i class="fa fa-user text-primary mr-1"></i>账号（手机号）
+            </label>
+            <input
+              type="tel"
+              id="mobile"
+              class="input-style"
+              placeholder="请输入手机号"
+              maxlength="11"
+              required
+            />
+          </div>
+
+          <!-- 密码 -->
+          <div class="space-y-2">
+            <label for="password" class="block text-sm font-medium text-dark">
+              <i class="fa fa-lock text-primary mr-1"></i>密码
+            </label>
+            <input
+              type="password"
+              id="password"
+              class="input-style"
+              placeholder="请输入密码（至少6位）"
+              required
+            />
+          </div>
+
+          <!-- 确认密码 -->
+          <div class="space-y-2">
+            <label
+              for="confirmPassword"
+              class="block text-sm font-medium text-dark"
+            >
+              <i class="fa fa-lock text-primary mr-1"></i>确认密码
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              class="input-style"
+              placeholder="请再次输入密码"
+              required
+            />
+          </div>
+
+          <!-- 年龄 -->
+          <div class="space-y-2">
+            <label for="age" class="block text-sm font-medium text-dark">
+              <i class="fa fa-birthday-cake text-primary mr-1"></i>年龄
+            </label>
+            <input
+              type="number"
+              id="age"
+              class="input-style"
+              placeholder="请输入年龄"
+              min="16"
+              max="60"
+              required
+            />
+          </div>
+
+          <!-- 性别 -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-dark">
+              <i class="fa fa-venus-mars text-primary mr-1"></i>性别
+            </label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 touch-active">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked
+                  class="w-4 h-4 text-primary"
+                />
+                <span class="text-sm">男</span>
+              </label>
+              <label class="flex items-center gap-2 touch-active">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  class="w-4 h-4 text-primary"
+                />
+                <span class="text-sm">女</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 非必要信息 -->
+        <div class="space-y-4">
+          <h2 class="text-base font-bold flex items-center">
+            <i class="fa fa-pencil text-primary mr-2"></i>
+            非必要信息
+          </h2>
+
+          <!-- 真实姓名 -->
+          <div class="space-y-2">
+            <label for="realName" class="block text-sm font-medium text-dark">
+              <i class="fa fa-user-circle text-primary mr-1"></i>真实姓名
+            </label>
+            <input
+              type="text"
+              id="realName"
+              class="input-style"
+              placeholder="请输入真实姓名"
+            />
+          </div>
+
+          <!-- 电话 -->
+          <div class="space-y-2">
+            <label for="phone" class="block text-sm font-medium text-dark">
+              <i class="fa fa-phone text-primary mr-1"></i>电话
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              class="input-style"
+              placeholder="请输入电话号码"
+            />
+          </div>
+
+          <!-- 职业 -->
+          <div class="space-y-2">
+            <label for="occupation" class="block text-sm font-medium text-dark">
+              <i class="fa fa-briefcase text-primary mr-1"></i>职业
+            </label>
+            <input
+              type="text"
+              id="occupation"
+              class="input-style"
+              placeholder="请输入职业"
+            />
+          </div>
+
+          <!-- 个人简介 -->
+          <div class="space-y-2">
+            <label for="bio" class="block text-sm font-medium text-dark">
+              <i class="fa fa-file-text-o text-primary mr-1"></i>个人简介
+            </label>
+            <textarea
+              id="bio"
+              class="input-style min-h-[100px] resize-none"
+              placeholder="请输入个人简介"
+            ></textarea>
+          </div>
+
+          <!-- 简历上传 -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-dark">
+              <i class="fa fa-file-pdf-o text-primary mr-1"></i>简历
+            </label>
+            <input type="file" id="resume" class="input-style" />
+            <span class="text-xs text-neutral"
+              >支持 PDF、Word 格式，大小不超过 5MB</span
+            >
+          </div>
+        </div>
+
+        <!-- 协议勾选 -->
+        <div class="flex items-start gap-2 pt-2">
+          <input
+            type="checkbox"
+            id="agree"
+            class="w-5 h-5 text-primary mt-1"
+            checked
+            required
+          />
+          <label for="agree" class="text-xs text-neutral">
+            注册即表示同意<a href="#" class="text-primary">《用户服务协议》</a>
+            和<a href="#" class="text-primary">《隐私政策》</a>
+          </label>
+        </div>
+
+        <!-- 注册按钮 -->
+        <button
+          id="registerBtn"
+          class="w-full bg-primary text-white font-medium py-3 rounded-lg touch-active flex items-center justify-center gap-2 text-lg mt-4"
+        >
+          <i class="fa fa-user-plus"></i>
+          <span>注册</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 注册成功弹窗 -->
+    <div
+      id="registerSuccessModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden"
+    >
+      <div class="bg-white rounded-2xl p-6 max-w-xs w-full mx-4 text-center">
+        <div
+          class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <i class="fa fa-check text-2xl text-green-500"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">注册成功</h3>
+        <p class="text-gray-500 text-sm mb-6">
+          账号已创建成功，即将跳转到登录页面
+        </p>
+        <button
+          id="closeModal"
+          class="w-full bg-primary text-white py-3 rounded-lg font-medium touch-active"
+        >
+          我知道了
+        </button>
+      </div>
+    </div>
+
+    <!-- JavaScript 交互逻辑 -->
+    <script>
+      // DOM元素
+      const registerBtn = document.getElementById("registerBtn");
+      const registerSuccessModal = document.getElementById(
+        "registerSuccessModal",
+      );
+      const closeModalBtn = document.getElementById("closeModal");
+      const avatarInput = document.getElementById("avatar");
+      const avatarPreview = document.getElementById("avatarPreview");
+
+      // 头像上传预览
+      avatarInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            avatarPreview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 注册按钮事件
+      registerBtn.addEventListener("click", function () {
+        // 获取表单数据
+        const studentId = document.getElementById("studentId").value;
+        const mobile = document.getElementById("mobile").value;
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+        const age = document.getElementById("age").value;
+        const gender = document.querySelector(
+          'input[name="gender"]:checked',
+        ).value;
+        const realName = document.getElementById("realName").value;
+        const phone = document.getElementById("phone").value;
+        const occupation = document.getElementById("occupation").value;
+        const bio = document.getElementById("bio").value;
+        const agree = document.getElementById("agree").checked;
+
+        // 表单验证
+        if (!studentId) {
+          alert("请输入学号");
+          return;
+        }
+
+        if (!mobile || mobile.length !== 11) {
+          alert("请输入正确的手机号");
+          return;
+        }
+
+        if (!password || password.length < 6) {
+          alert("请输入至少6位密码");
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          alert("两次输入的密码不一致");
+          return;
+        }
+
+        if (!age || age < 16 || age > 60) {
+          alert("请输入有效的年龄（16-60岁）");
+          return;
+        }
+
+        if (!agree) {
+          alert("请同意用户服务协议和隐私政策");
+          return;
+        }
+
+        // 显示注册成功弹窗
+        registerSuccessModal.classList.remove("hidden");
+      });
+
+      // 关闭弹窗并跳转到登录页面
+      closeModalBtn.addEventListener("click", function () {
+        registerSuccessModal.classList.add("hidden");
+        window.location.href = "login.html";
+      });
+
+      // 点击弹窗外部关闭
+      registerSuccessModal.addEventListener("click", function (e) {
+        if (e.target === registerSuccessModal) {
+          registerSuccessModal.classList.add("hidden");
+          window.location.href = "login.html";
+        }
+      });
+
+      // 适配移动端输入框
+      const inputs = document.querySelectorAll("input, textarea");
+      inputs.forEach((input) => {
+        input.addEventListener("focus", function () {
+          document.body.style.marginBottom = "200px";
+        });
+
+        input.addEventListener("blur", function () {
+          document.body.style.marginBottom = "0";
+        });
+      });
+    </script>
+  </body>
+</html>

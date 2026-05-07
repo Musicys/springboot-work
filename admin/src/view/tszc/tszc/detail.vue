@@ -15,7 +15,9 @@
                      <ElDescriptionsItem label="订单ID">{{ complaintInfo.orderId }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="投诉人ID">{{ complaintInfo.complainantId }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="被投诉人ID">{{ complaintInfo.defendantId }}</ElDescriptionsItem>
-                     <ElDescriptionsItem label="被投诉类型">{{ getTargetTypeText(complaintInfo.targetType) }}</ElDescriptionsItem>
+                     <ElDescriptionsItem label="被投诉类型">{{
+                        getTargetTypeText(complaintInfo.targetType)
+                     }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="投诉原因">{{ complaintInfo.reasonCode }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="详细描述">{{ complaintInfo.description }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="状态">{{ getStatusText(complaintInfo.status) }}</ElDescriptionsItem>
@@ -30,8 +32,12 @@
                      <ElDescriptionsItem label="商家ID">{{ orderInfo.merchantId }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="用户ID">{{ orderInfo.userId }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="兼职ID">{{ orderInfo.jobId }}</ElDescriptionsItem>
-                     <ElDescriptionsItem label="订单状态">{{ getOrderStatusText(orderInfo.orderStatus) }}</ElDescriptionsItem>
-                     <ElDescriptionsItem label="交易模式">{{ getTradeModeText(orderInfo.tradeMode) }}</ElDescriptionsItem>
+                     <ElDescriptionsItem label="订单状态">{{
+                        getOrderStatusText(orderInfo.orderStatus)
+                     }}</ElDescriptionsItem>
+                     <ElDescriptionsItem label="交易模式">{{
+                        getTradeModeText(orderInfo.tradeMode)
+                     }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="创建时间">{{ orderInfo.createdAt }}</ElDescriptionsItem>
                      <ElDescriptionsItem label="完成时间">{{ orderInfo.completedAt }}</ElDescriptionsItem>
                   </ElDescriptions>
@@ -50,8 +56,7 @@
                   :key="index"
                   :src="evidence"
                   fit="cover"
-                  style="width: 200px; height: 150px; margin-right: 10px; margin-bottom: 10px"
-               />
+                  style="width: 200px; height: 150px; margin-right: 10px; margin-bottom: 10px" />
             </div>
          </ElCard>
          <ElCard shadow="hover" style="margin-top: 20px">
@@ -65,12 +70,18 @@
                <ElDescriptionsItem label="订单ID">{{ arbitrationInfo.orderId }}</ElDescriptionsItem>
                <ElDescriptionsItem label="申请人ID">{{ arbitrationInfo.initiatorId }}</ElDescriptionsItem>
                <ElDescriptionsItem label="用户证据摘要">{{ arbitrationInfo.userEvidenceSummary }}</ElDescriptionsItem>
-               <ElDescriptionsItem label="商家证据摘要">{{ arbitrationInfo.merchantEvidenceSummary }}</ElDescriptionsItem>
+               <ElDescriptionsItem label="商家证据摘要">{{
+                  arbitrationInfo.merchantEvidenceSummary
+               }}</ElDescriptionsItem>
                <ElDescriptionsItem label="管理员判词">{{ arbitrationInfo.adminComment }}</ElDescriptionsItem>
-               <ElDescriptionsItem label="裁决结果">{{ getRulingResultText(arbitrationInfo.rulingResult) }}</ElDescriptionsItem>
+               <ElDescriptionsItem label="裁决结果">{{
+                  getRulingResultText(arbitrationInfo.rulingResult)
+               }}</ElDescriptionsItem>
                <ElDescriptionsItem label="最终结算金额">{{ arbitrationInfo.finalSettlementAmount }}</ElDescriptionsItem>
                <ElDescriptionsItem label="处理管理员ID">{{ arbitrationInfo.handledByAdminId }}</ElDescriptionsItem>
-               <ElDescriptionsItem label="仲裁状态">{{ getArbitrationStatusText(arbitrationInfo.status) }}</ElDescriptionsItem>
+               <ElDescriptionsItem label="仲裁状态">{{
+                  getArbitrationStatusText(arbitrationInfo.status)
+               }}</ElDescriptionsItem>
                <ElDescriptionsItem label="创建时间">{{ arbitrationInfo.createdAt }}</ElDescriptionsItem>
                <ElDescriptionsItem label="结案时间">{{ arbitrationInfo.closedAt }}</ElDescriptionsItem>
             </ElDescriptions>
@@ -130,7 +141,7 @@ const arbitrationInfo = ref({
    merchantEvidenceSummary: '用户工作态度不认真，多次迟到',
    adminComment: '经调查，双方都存在问题，商家服务态度确实存在问题，用户也有迟到情况。最终裁决商家退还部分薪资。',
    rulingResult: 2,
-   finalSettlementAmount: 80.00,
+   finalSettlementAmount: 80.0,
    handledByAdminId: 1001,
    status: 2,
    createdAt: '2026-01-01 11:00:00',
@@ -139,58 +150,85 @@ const arbitrationInfo = ref({
 
 function getTargetTypeText(type) {
    switch (type) {
-      case 1: return '用户';
-      case 2: return '商家';
-      default: return '未知';
+      case 1:
+         return '用户';
+      case 2:
+         return '商家';
+      default:
+         return '未知';
    }
 }
 
 function getStatusText(status) {
    switch (status) {
-      case 1: return '待处理';
-      case 2: return '处理中';
-      case 3: return '成功(处罚)';
-      case 4: return '失败(证据不足)';
-      default: return '未知';
+      case 1:
+         return '待处理';
+      case 2:
+         return '处理中';
+      case 3:
+         return '成功(处罚)';
+      case 4:
+         return '失败(证据不足)';
+      default:
+         return '未知';
    }
 }
 
 function getOrderStatusText(status) {
    switch (status) {
-      case 1: return '待入职';
-      case 2: return '进行中';
-      case 3: return '完成待结算';
-      case 4: return '纠纷中';
-      case 5: return '已结款';
-      case 6: return '用户爽约';
-      case 7: return '异常终止';
-      default: return '未知';
+      case 1:
+         return '待入职';
+      case 2:
+         return '进行中';
+      case 3:
+         return '完成待结算';
+      case 4:
+         return '纠纷中';
+      case 5:
+         return '已结款';
+      case 6:
+         return '用户爽约';
+      case 7:
+         return '异常终止';
+      default:
+         return '未知';
    }
 }
 
 function getTradeModeText(mode) {
    switch (mode) {
-      case 1: return '平台担保';
-      case 2: return '线下交易';
-      default: return '未知';
+      case 1:
+         return '平台担保';
+      case 2:
+         return '线下交易';
+      default:
+         return '未知';
    }
 }
 
 function getRulingResultText(result) {
    switch (result) {
-      case 1: return '全额结款';
-      case 2: return '部分结款';
-      case 3: return '不结款';
-      case 4: return '退还押金';
-      default: return '未知';
+      case 1:
+         return '全额结款';
+      case 2:
+         return '部分结款';
+      case 3:
+         return '不结款';
+      case 4:
+         return '退还押金';
+      default:
+         return '未知';
    }
 }
 
 function getArbitrationStatusText(status) {
    switch (status) {
-      case 1: return '审理中';
-      case 2: return '已结案';
-      default: return '未知';
+      case 1:
+         return '审理中';
+      case 2:
+         return '已结案';
+      default:
+         return '未知';
    }
 }
 

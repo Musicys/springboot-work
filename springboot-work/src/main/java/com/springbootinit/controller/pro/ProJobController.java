@@ -75,49 +75,86 @@ public class ProJobController {
                 return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
             }
 
-            // 获取分页参数
-            Integer pageNum = (Integer) requestBody.get("pageNum");
-            Integer pageSize = (Integer) requestBody.get("pageSize");
+            // 获取分页参数 - 支持多种键名和Number类型
+            Integer pageNum = null;
+            Integer pageSize = null;
+            
+            if (requestBody.containsKey("pageNum")) {
+                Object pageNumObj = requestBody.get("pageNum");
+                if (pageNumObj instanceof Number) {
+                    pageNum = ((Number) pageNumObj).intValue();
+                }
+            } else if (requestBody.containsKey("page")) {
+                Object pageObj = requestBody.get("page");
+                if (pageObj instanceof Number) {
+                    pageNum = ((Number) pageObj).intValue();
+                }
+            }
+            
+            if (requestBody.containsKey("pageSize")) {
+                Object pageSizeObj = requestBody.get("pageSize");
+                if (pageSizeObj instanceof Number) {
+                    pageSize = ((Number) pageSizeObj).intValue();
+                }
+            } else if (requestBody.containsKey("size")) {
+                Object sizeObj = requestBody.get("size");
+                if (sizeObj instanceof Number) {
+                    pageSize = ((Number) sizeObj).intValue();
+                }
+            }
+            
             if (pageNum == null || pageSize == null) {
                 return ResultUtils.error(ErrorCode.PARAMS_ERROR, "分页参数不能为空");
             }
+            
+            // 参数校验
+            if (pageNum < 1) {
+                pageNum = 1;
+            }
+            if (pageSize < 1 || pageSize > 100) {
+                pageSize = 10;
+            }
 
             // 获取搜索参数
-            Map<String, Object> params = (Map<String, Object>) requestBody.get("params");
+            Map<String, Object> params = null;
+            if (requestBody.containsKey("params") && requestBody.get("params") instanceof Map) {
+                params = (Map<String, Object>) requestBody.get("params");
+            }
 
             // 查询本商户的兼职列表
             Page<JbJobs> pageInfo = new Page<>(pageNum, pageSize);
             QueryWrapper<JbJobs> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("merchant_id", merchantId);
+            queryWrapper.orderByDesc("created_at");
 
             // 处理搜索参数
-            if (params != null) {
+            if (params != null && !params.isEmpty()) {
                 // 岗位标题
-                if (params.get("title") != null && !params.get("title").toString().isEmpty()) {
+                if (params.containsKey("title") && params.get("title") != null && !params.get("title").toString().trim().isEmpty()) {
                     queryWrapper.like("title", params.get("title"));
                 }
                 // 分类ID
-                if (params.get("categoryId") != null && !params.get("categoryId").toString().isEmpty()) {
+                if (params.containsKey("categoryId") && params.get("categoryId") != null) {
                     queryWrapper.eq("category_id", params.get("categoryId"));
                 }
                 // 地区代码
-                if (params.get("regionCode") != null && !params.get("regionCode").toString().isEmpty()) {
+                if (params.containsKey("regionCode") && params.get("regionCode") != null && !params.get("regionCode").toString().trim().isEmpty()) {
                     queryWrapper.eq("region_code", params.get("regionCode"));
                 }
                 // 状态
-                if (params.get("status") != null && !params.get("status").toString().isEmpty()) {
+                if (params.containsKey("status") && params.get("status") != null) {
                     queryWrapper.eq("status", params.get("status"));
                 }
                 // 交易模式
-                if (params.get("tradeMode") != null && !params.get("tradeMode").toString().isEmpty()) {
+                if (params.containsKey("tradeMode") && params.get("tradeMode") != null) {
                     queryWrapper.eq("trade_mode", params.get("tradeMode"));
                 }
                 // 最低薪资
-                if (params.get("salaryMin") != null && !params.get("salaryMin").toString().isEmpty()) {
+                if (params.containsKey("salaryMin") && params.get("salaryMin") != null) {
                     queryWrapper.ge("salary_min", params.get("salaryMin"));
                 }
                 // 最高薪资
-                if (params.get("salaryMax") != null && !params.get("salaryMax").toString().isEmpty()) {
+                if (params.containsKey("salaryMax") && params.get("salaryMax") != null) {
                     queryWrapper.le("salary_max", params.get("salaryMax"));
                 }
             }

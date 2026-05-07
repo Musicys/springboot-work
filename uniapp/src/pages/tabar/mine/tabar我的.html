@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>个人中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3B82F6",
+              secondary: "#10B981",
+              danger: "#EF4444",
+              warning: "#F59E0B",
+            },
+            fontFamily: {
+              sans: ["PingFang SC", "Helvetica Neue", "Arial", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .touch-active {
+          @apply active:scale-95 active:opacity-80 transition-all duration-200;
+        }
+        .score-bar {
+          @apply h-2 bg-gray-200 rounded-full overflow-hidden;
+        }
+        .score-progress {
+          @apply h-full bg-primary rounded-full;
+        }
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-50 font-sans">
+    <!-- 顶部导航 -->
+    <header
+      class="sticky top-0 z-50 bg-white shadow-sm px-4 py-3 flex items-center justify-between"
+    >
+      <h1 class="text-base font-bold">我的</h1>
+      <a href="#" class="w-9 h-9 flex items-center justify-center touch-active">
+        <i class="fa fa-cog text-gray-700"></i>
+      </a>
+    </header>
+
+    <!-- 个人信息头部 -->
+    <div class="bg-primary text-white p-6 relative">
+      <div class="flex items-center gap-4 mb-4">
+        <img
+          src="https://picsum.photos/seed/useravatar/100/100"
+          class="w-16 h-16 rounded-full border-2 border-white/50 object-cover"
+        />
+        <div>
+          <h2 class="text-lg font-bold">小李同学</h2>
+          <p class="text-white/80 text-sm">ID: 887654321</p>
+        </div>
+      </div>
+
+      <!-- 信誉分模块 -->
+      <div class="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center">
+            <i class="fa fa-star text-yellow-300 mr-2"></i>
+            <span class="text-sm">信誉分</span>
+          </div>
+          <span class="font-bold text-lg"
+            >98
+            <span class="text-sm font-normal text-white/80">/ 100</span></span
+          >
+        </div>
+        <div class="score-bar">
+          <div class="score-progress" style="width: 98%"></div>
+        </div>
+        <p class="text-xs text-white/70 mt-2">信誉良好，可优先应聘高薪兼职</p>
+      </div>
+    </div>
+
+    <!-- 提现金额模块 -->
+    <div class="bg-white -mt-4 mx-4 rounded-xl shadow-md p-4 mb-4 touch-active">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-gray-500 text-sm">可提现金额</p>
+          <h3 class="text-2xl font-bold text-dark mt-1">¥2,856.00</h3>
+        </div>
+        <button
+          class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium touch-active"
+        >
+          立即提现
+        </button>
+      </div>
+      <div class="flex gap-4 mt-3 text-sm">
+        <a href="#" class="text-primary flex items-center">
+          <i class="fa fa-history mr-1"></i> 提现记录
+        </a>
+        <a href="#" class="text-primary flex items-center">
+          <i class="fa fa-wallet mr-1"></i> 收益明细
+        </a>
+      </div>
+    </div>
+
+    <!-- 功能菜单 -->
+    <main class="pb-24">
+      <!-- 简历模块 -->
+      <div class="bg-white mb-3">
+        <a
+          href="#"
+          class="flex justify-between items-center px-4 py-4 border-b border-gray-50 touch-active"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary"
+            >
+              <i class="fa fa-file-text-o"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium">我的简历</h3>
+              <p class="text-xs text-gray-500 mt-1">
+                已完善80%，完善度越高越易应聘
+              </p>
+            </div>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </a>
+
+        <!-- 简历快捷操作 -->
+        <div class="grid grid-cols-3 px-4 py-3 text-center text-sm">
+          <a href="#" class="touch-active">
+            <i class="fa fa-pencil text-primary block mb-1"></i>
+            <span>编辑简历</span>
+          </a>
+          <a href="#" class="touch-active">
+            <i class="fa fa-upload text-primary block mb-1"></i>
+            <span>上传附件</span>
+          </a>
+          <a href="#" class="touch-active">
+            <i class="fa fa-share text-primary block mb-1"></i>
+            <span>简历分享</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 核心功能区 -->
+      <div class="bg-white mb-3">
+        <div
+          class="flex justify-between items-center px-4 py-3 border-b border-gray-50 touch-active"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500"
+            >
+              <i class="fa fa-clock-o"></i>
+            </div>
+            <span class="text-sm font-medium">兼职记录</span>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </div>
+        <div class="flex justify-between items-center px-4 py-3 touch-active">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-danger"
+            >
+              <i class="fa fa-flag-o"></i>
+            </div>
+            <span class="text-sm font-medium">投诉与反馈</span>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </div>
+      </div>
+
+      <!-- 系统设置区 -->
+      <div class="bg-white">
+        <div
+          class="flex justify-between items-center px-4 py-3 border-b border-gray-50 touch-active"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+            >
+              <i class="fa fa-shield"></i>
+            </div>
+            <span class="text-sm font-medium">账号安全</span>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </div>
+        <div
+          class="flex justify-between items-center px-4 py-3 border-b border-gray-50 touch-active"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+            >
+              <i class="fa fa-bell-o"></i>
+            </div>
+            <span class="text-sm font-medium">消息设置</span>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </div>
+        <div class="flex justify-between items-center px-4 py-3 touch-active">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"
+            >
+              <i class="fa fa-question-circle-o"></i>
+            </div>
+            <span class="text-sm font-medium">帮助中心</span>
+          </div>
+          <i class="fa fa-angle-right text-gray-400"></i>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav
+      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-6"
+    >
+      <div class="flex" style="justify-content: space-around">
+        <a
+          href="tabar首页.html"
+          class="flex flex-col items-center text-gray-400 touch-active"
+        >
+          <i class="fa fa-home text-lg"></i>
+          <span class="text-xs mt-1">首页</span>
+        </a>
+
+        <a
+          href="tabar我的.html"
+          class="flex flex-col items-center text-primary touch-active"
+        >
+          <i class="fa fa-user text-lg"></i>
+          <span class="text-xs mt-1">我的</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- 交互脚本 -->
+    <script>
+      // 提现按钮点击事件
+      const withdrawBtn = document.querySelector(
+        '.bg-primary:has(> "立即提现")',
+      );
+      withdrawBtn.addEventListener("click", function () {
+        alert("提现申请已提交，预计1-3个工作日到账");
+      });
+
+      // 信誉分区域点击
+      const scoreArea = document.querySelector(".bg-white/10");
+      scoreArea.addEventListener("click", function () {
+        alert("信誉分由兼职完成率、评价、违规记录等综合计算");
+      });
+
+      // 简历编辑点击
+      const resumeEdit = document.querySelector(".fa-pencil").parentNode;
+      resumeEdit.addEventListener("click", function () {
+        alert("进入简历编辑页面");
+      });
+
+      // 页面滚动优化
+      window.addEventListener("scroll", function () {
+        const header = document.querySelector("header");
+        if (window.scrollY > 10) {
+          header.classList.add("shadow");
+        } else {
+          header.classList.remove("shadow");
+        }
+      });
+    </script>
+  </body>
+</html>

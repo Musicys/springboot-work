@@ -26,6 +26,8 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+
         String requestUri = request.getRequestURI();
         String method = request.getMethod();
         System.out.println("Request URI: " + requestUri + ", Method: " + method);

@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>短视频剪辑兼职 - 详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3B82F6",
+              secondary: "#10B981",
+              danger: "#EF4444",
+              warning: "#F59E0B",
+            },
+            fontFamily: {
+              sans: ["PingFang SC", "Helvetica Neue", "Arial", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .touch-active {
+          @apply active:scale-95 active:opacity-80 transition-all duration-200;
+        }
+        .text-line-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .img-swiper {
+          scroll-snap-type: x mandatory;
+        }
+        .img-swiper > div {
+          scroll-snap-align: start;
+        }
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        padding-bottom: 20px; /* 底部留白，替代TabBar占位 */
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- 顶部导航（强化返回+简洁设计） -->
+    <header
+      class="sticky top-0 z-50 bg-white shadow-sm px-4 py-3 flex items-center"
+    >
+      <!-- 返回按钮（加大触控区域） -->
+      <a
+        href="javascript:history.back()"
+        class="w-10 h-10 flex items-center justify-center touch-active rounded-full hover:bg-gray-100 mr-2"
+      >
+        <i class="fa fa-arrow-left text-gray-700 text-lg"></i>
+      </a>
+      <h1 class="text-base font-bold flex-1 text-center">兼职详情</h1>
+      <!-- 右侧操作按钮 -->
+      <div class="w-10 flex items-center justify-center">
+        <button
+          class="w-10 h-10 flex items-center justify-center touch-active rounded-full hover:bg-gray-100"
+        >
+          <i class="fa fa-share-alt text-gray-700"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- 核心内容区 -->
+    <main>
+      <!-- 图片轮播区（多图展示+指示器） -->
+      <div class="relative">
+        <!-- 图片横向滚动容器 -->
+        <div class="img-swiper flex overflow-x-auto scrollbar-hide w-full h-60">
+          <div class="w-full flex-shrink-0">
+            <img
+              src="https://picsum.photos/seed/videojob1/750/400"
+              alt="兼职配图1"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="w-full flex-shrink-0">
+            <img
+              src="https://picsum.photos/seed/videojob2/750/400"
+              alt="兼职配图2"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="w-full flex-shrink-0">
+            <img
+              src="https://picsum.photos/seed/videojob3/750/400"
+              alt="兼职配图3"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+        <!-- 图片指示器 -->
+        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+          <span class="w-2 h-2 rounded-full bg-white/90"></span>
+          <span class="w-2 h-2 rounded-full bg-white/50"></span>
+          <span class="w-2 h-2 rounded-full bg-white/50"></span>
+        </div>
+        <!-- 标签+收藏 -->
+        <div class="absolute top-3 left-3 flex gap-2">
+          <span class="bg-danger text-white text-xs px-2 py-1 rounded-full"
+            >急招</span
+          >
+          <span class="bg-secondary text-white text-xs px-2 py-1 rounded-full"
+            >高薪</span
+          >
+        </div>
+        <button
+          class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center touch-active backdrop-blur-sm"
+        >
+          <i class="fa fa-heart-o text-danger text-lg"></i>
+        </button>
+      </div>
+
+      <!-- 核心信息区 -->
+      <div class="bg-white p-4 mb-3">
+        <h1 class="text-xl font-bold mb-2">短视频剪辑兼职</h1>
+
+        <!-- 薪资&标签 -->
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-baseline">
+            <span class="text-secondary text-2xl font-bold">¥180</span>
+            <span class="text-gray-500 text-sm ml-1">/天</span>
+          </div>
+          <div class="flex gap-2">
+            <span class="bg-blue-50 text-primary text-xs px-2 py-1 rounded-full"
+              >线上</span
+            >
+            <span
+              class="bg-green-50 text-green-600 text-xs px-2 py-1 rounded-full"
+              >日结</span
+            >
+            <span
+              class="bg-purple-50 text-purple-500 text-xs px-2 py-1 rounded-full"
+              >学生可做</span
+            >
+          </div>
+        </div>
+
+        <!-- 基础信息（带图标+图片） -->
+        <div class="grid grid-cols-2 gap-y-4 text-sm">
+          <div class="flex items-center">
+            <div
+              class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2"
+            >
+              <i class="fa fa-clock-o text-gray-500"></i>
+            </div>
+            <span class="text-gray-600">工作时间：不限</span>
+          </div>
+          <div class="flex items-center">
+            <div
+              class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2"
+            >
+              <i class="fa fa-map-marker text-gray-500"></i>
+            </div>
+            <span class="text-gray-600">工作地点：线上办公</span>
+          </div>
+          <div class="flex items-center">
+            <div
+              class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2"
+            >
+              <i class="fa fa-user text-gray-500"></i>
+            </div>
+            <span class="text-gray-600">招聘人数：20人</span>
+          </div>
+          <div class="flex items-center">
+            <div
+              class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2"
+            >
+              <i class="fa fa-calendar text-gray-500"></i>
+            </div>
+            <span class="text-gray-600">有效期：30天</span>
+          </div>
+        </div>
+
+        <!-- 发布时间 -->
+        <div class="mt-4 text-xs text-gray-400 pt-3 border-t border-gray-100">
+          发布于：2026-03-12 14:30 | 已被浏览 1258 次
+        </div>
+      </div>
+
+      <!-- 岗位描述（带配图） -->
+      <div class="bg-white p-4 mb-3">
+        <h2 class="font-bold text-base mb-4 flex items-center">
+          <div
+            class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-primary mr-2"
+          >
+            <i class="fa fa-file-text-o"></i>
+          </div>
+          岗位描述
+        </h2>
+        <div class="text-sm text-gray-600 leading-relaxed mb-3">
+          <p class="mb-2">
+            1. 负责短视频素材的剪辑、拼接、配乐、字幕制作等工作；
+          </p>
+          <p class="mb-2">
+            2. 根据要求完成视频的剪辑和后期处理，保证视频质量；
+          </p>
+          <p class="mb-2">3. 配合运营团队完成视频内容的优化和调整；</p>
+          <p class="mb-2">4. 按时完成分配的剪辑任务，保证交付效率。</p>
+        </div>
+        <!-- 岗位配图 -->
+        <div class="grid grid-cols-3 gap-2 mt-3">
+          <img
+            src="https://picsum.photos/seed/jobdesc1/200/200"
+            alt="岗位配图1"
+            class="rounded-lg w-full h-24 object-cover"
+          />
+          <img
+            src="https://picsum.photos/seed/jobdesc2/200/200"
+            alt="岗位配图2"
+            class="rounded-lg w-full h-24 object-cover"
+          />
+          <img
+            src="https://picsum.photos/seed/jobdesc3/200/200"
+            alt="岗位配图3"
+            class="rounded-lg w-full h-24 object-cover"
+          />
+        </div>
+      </div>
+
+      <!-- 任职要求 -->
+      <div class="bg-white p-4 mb-3">
+        <h2 class="font-bold text-base mb-4 flex items-center">
+          <div
+            class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-secondary mr-2"
+          >
+            <i class="fa fa-list-alt"></i>
+          </div>
+          任职要求
+        </h2>
+        <div class="text-sm text-gray-600 leading-relaxed">
+          <p class="mb-2">
+            1. 熟练使用剪映、PR、AE等剪辑软件，有相关剪辑经验；
+          </p>
+          <p class="mb-2">2. 具备良好的审美能力，能独立完成视频剪辑和制作；</p>
+          <p class="mb-2">3. 工作认真负责，有耐心，能按时完成任务；</p>
+          <p class="mb-2">4. 无需坐班，时间自由，按量结算薪资；</p>
+          <p>5. 有短视频剪辑作品集优先（可附链接/图片）。</p>
+        </div>
+      </div>
+
+      <!-- 薪资说明 -->
+      <div class="bg-white p-4 mb-3">
+        <h2 class="font-bold text-base mb-4 flex items-center">
+          <div
+            class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-warning mr-2"
+          >
+            <i class="fa fa-money"></i>
+          </div>
+          薪资说明
+        </h2>
+        <div class="text-sm text-gray-600 leading-relaxed">
+          <div class="bg-yellow-50 rounded-lg p-3 mb-3">
+            <p class="font-medium text-warning mb-1">薪资构成</p>
+            <p class="mb-1">• 基础薪资：180元/天（完成基础剪辑任务）</p>
+            <p class="mb-1">• 提成奖励：根据视频播放量额外奖励（10-50元/条）</p>
+            <p>• 全勤奖励：月完成20天以上额外奖励500元</p>
+          </div>
+          <p class="mb-2">• 结算方式：日结，次日18点前到账</p>
+          <p>• 结算平台：微信/支付宝（二选一）</p>
+        </div>
+      </div>
+
+      <!-- 企业信息（带logo+认证图片） -->
+      <div class="bg-white p-4 mb-6">
+        <h2 class="font-bold text-base mb-4 flex items-center">
+          <div
+            class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mr-2"
+          >
+            <i class="fa fa-building"></i>
+          </div>
+          企业信息
+        </h2>
+        <div class="flex items-center gap-4">
+          <img
+            src="https://picsum.photos/seed/companylogo/100/100"
+            alt="企业logo"
+            class="w-16 h-16 rounded-full object-cover border border-gray-100"
+          />
+          <div class="flex-1">
+            <h3 class="font-medium text-base">北京创想文化传媒有限公司</h3>
+            <div class="flex items-center gap-2 mt-1">
+              <span
+                class="text-xs bg-blue-50 text-primary px-2 py-0.5 rounded-full"
+                >已认证</span
+              >
+              <span
+                class="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full"
+                >文化传媒</span
+              >
+              <span
+                class="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full"
+                >50-100人</span
+              >
+            </div>
+            <p class="text-xs text-gray-500 mt-2">
+              地址：北京市朝阳区建国路88号
+            </p>
+          </div>
+          <button
+            class="text-primary text-sm touch-active px-3 py-1 border border-primary rounded-full"
+          >
+            <i class="fa fa-plus-circle mr-1"></i>关注
+          </button>
+        </div>
+        <!-- 企业资质图片 -->
+        <div class="mt-4">
+          <p class="text-xs text-gray-500 mb-2">企业认证资质</p>
+          <div class="flex gap-2 overflow-x-auto pb-2">
+            <img
+              src="https://picsum.photos/seed/company1/100/100"
+              alt="营业执照"
+              class="w-20 h-20 rounded-lg object-cover"
+            />
+            <img
+              src="https://picsum.photos/seed/company2/100/100"
+              alt="法人认证"
+              class="w-20 h-20 rounded-lg object-cover"
+            />
+            <img
+              src="https://picsum.photos/seed/company3/100/100"
+              alt="税务登记"
+              class="w-20 h-20 rounded-lg object-cover"
+            />
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部固定操作栏（替代TabBar，突出核心操作） -->
+    <div
+      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-4 shadow-lg"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex gap-4">
+          <button class="flex flex-col items-center touch-active w-12">
+            <i class="fa fa-star-o text-gray-500 text-lg"></i>
+            <span class="text-xs text-gray-500 mt-1">收藏</span>
+          </button>
+          <button class="flex flex-col items-center touch-active w-12">
+            <i class="fa fa-comment-o text-gray-500 text-lg"></i>
+            <span class="text-xs text-gray-500 mt-1">咨询</span>
+          </button>
+        </div>
+        <button
+          class="bg-primary text-white py-3 px-8 rounded-lg font-medium touch-active flex-1 ml-4 text-center"
+        >
+          立即应聘
+        </button>
+      </div>
+    </div>
+
+    <!-- JavaScript交互 -->
+    <script>
+      // 收藏按钮切换状态
+      const collectBtn = document.querySelector(".fa-heart-o").parentNode;
+      collectBtn.addEventListener("click", function () {
+        const icon = this.querySelector("i");
+        if (icon.classList.contains("fa-heart-o")) {
+          icon.classList.remove("fa-heart-o");
+          icon.classList.add("fa-heart");
+          icon.style.color = "#EF4444";
+          alert("已收藏该兼职");
+        } else {
+          icon.classList.remove("fa-heart");
+          icon.classList.add("fa-heart-o");
+          icon.style.color = "#EF4444";
+          alert("已取消收藏");
+        }
+      });
+
+      // 应聘按钮点击事件
+      const applyBtn = document.querySelector(".bg-primary");
+      applyBtn.addEventListener("click", function () {
+        alert("应聘成功！企业将在1个工作日内联系你，请保持电话畅通");
+      });
+
+      // 关注企业按钮
+      const followBtn = document.querySelector(".fa-plus-circle").parentNode;
+      followBtn.addEventListener("click", function () {
+        if (this.innerHTML.includes("关注")) {
+          this.innerHTML = '<i class="fa fa-check-circle mr-1"></i>已关注';
+          this.classList.remove("text-primary", "border-primary");
+          this.classList.add("text-secondary", "border-secondary");
+          alert("已关注该企业");
+        } else {
+          this.innerHTML = '<i class="fa fa-plus-circle mr-1"></i>关注';
+          this.classList.remove("text-secondary", "border-secondary");
+          this.classList.add("text-primary", "border-primary");
+          alert("已取消关注");
+        }
+      });
+
+      // 图片轮播简单交互
+      const swiper = document.querySelector(".img-swiper");
+      let currentIndex = 0;
+      const indicators = document.querySelectorAll(".img-swiper + div span");
+
+      // 自动轮播
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % 3;
+        swiper.scrollTo({
+          left: currentIndex * swiper.offsetWidth,
+          behavior: "smooth",
+        });
+        // 更新指示器
+        indicators.forEach((item, idx) => {
+          if (idx === currentIndex) {
+            item.classList.add("bg-white/90");
+            item.classList.remove("bg-white/50");
+          } else {
+            item.classList.add("bg-white/50");
+            item.classList.remove("bg-white/90");
+          }
+        });
+      }, 3000);
+
+      // 页面滚动优化
+      window.addEventListener("scroll", function () {
+        const header = document.querySelector("header");
+        if (window.scrollY > 10) {
+          header.classList.add("shadow-md");
+        } else {
+          header.classList.remove("shadow-md");
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -2,11 +2,8 @@
    <view class="tabar">
       <view class="router">
          <home v-if="currentTabbar === 0"></home>
-         <dynamic v-if="currentTabbar === 1"></dynamic>
-         <message v-if="currentTabbar === 3"></message>
-         <mine v-if="currentTabbar === 4"></mine>
+         <mine v-if="currentTabbar === 1"></mine>
       </view>
-
       <tn-tabbar
          v-model="currentTabbar"
          :animation="true"
@@ -23,12 +20,12 @@
             :active-icon="item.activeIcon"
             :text="item.title"
             :bulge="index === 2"
-            :badge="item.badge ? scoke.massgecout : false"
+            :badge="item.badge ? 0 : false"
             bulge-bg-color="tn-gradient__cool-6" />
       </tn-tabbar>
 
       <!--#ifdef H5 -->
-      <view class="download-float-wrapper">
+      <!-- <view class="download-float-wrapper">
          <view
             class="download-float"
             :class="{ expanded: isDownloadExpanded }"
@@ -41,7 +38,7 @@
                <view class="download-text">去下载</view>
             </view>
          </view>
-      </view>
+      </view> -->
       <!--#endif -->
    </view>
    <wd-message-box></wd-message-box>
@@ -53,18 +50,14 @@ import Home from './home/index.vue';
 import Mine from './mine/index.vue';
 import { useRouter } from 'uni-mini-router';
 import Message from './message/index.vue';
-import { sockeStore } from '@/store/socke';
 import {
    useMessage,
    useToast,
    useIcon
 } from '../../../node_modules/wot-design-uni';
-import { useStore } from '@/store/user';
 import { debounce, throttle } from '@/util';
-const store = useStore();
 const message = useMessage();
 const toast = useToast();
-const scoke = sockeStore();
 const router = useRouter();
 const currentTabbar = ref(0);
 
@@ -89,37 +82,6 @@ const toggleDownload = () => {
       }, 2000);
    }
 };
-watch(
-   () => scoke.isConnect,
-   newVal => {
-      if (!newVal) {
-         message
-            .alert({
-               title: '连接已断开，请重新连接',
-               confirmButtonText: '重新连接'
-            })
-            .then(() => {
-               uni.showLoading({
-                  title: '连接中',
-                  mask: true
-               });
-               setTimeout(() => {
-                  scoke.websocke(store.userInfo.id);
-               }, 1000);
-            });
-      } else {
-         message.close();
-         uni.hideLoading();
-         uni.showToast({
-            title: '连接成功',
-            icon: 'none'
-         });
-      }
-   },
-   {
-      deep: true
-   }
-);
 
 // 导航栏数据
 const tabbarData = [
@@ -127,26 +89,6 @@ const tabbarData = [
       title: '首页',
       activeIcon: '../../static/tabbar/home_tnnew.png',
       inactiveIcon: '../../static/tabbar/home_tn.png'
-   },
-   {
-      title: '动态',
-      activeIcon: '../../static/tabbar/circle_tnnew.png',
-      inactiveIcon: '../../static/tabbar/circle_tn.png'
-   },
-   {
-      title: '发布',
-      activeIcon: 'menu-circle',
-      inactiveIcon: 'rocket',
-      activeIconColor: '#FFFFFF',
-      inactiveIconColor: '#FFFFFF',
-      iconSize: 50,
-      out: true
-   },
-   {
-      title: '消息',
-      activeIcon: '../../static/tabbar/preferred_tnnew.png',
-      inactiveIcon: '../../static/tabbar/preferred_tn.png',
-      badge: scoke.massgecout
    },
    {
       title: '我的',
@@ -169,16 +111,19 @@ onLoad(() => {
 
 <style lang="scss" scoped>
 .router {
-   padding-bottom: env(safe-area-inset-bottom); /* 底部安全区 */
+   padding-bottom: env(safe-area-inset-bottom);
+   /* 底部安全区 */
    width: 100vw;
    height: 100vw;
    background: var(--quyou-bg-centext-color);
 }
+
 :deep() {
    .tn-tabbar__placeholder {
       display: none !important;
    }
 }
+
 .masge {
    position: fixed;
    z-index: 99999;

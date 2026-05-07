@@ -1,624 +1,456 @@
 <template>
-   <view class="wrapper" :style="colorStyle">
-      <view class="page-msg">
-         <view class="title">
-            {{ currentTabIndex === 0 ? '密码登录' : '验证码注册' }}
+   <view class="page">
+      <!-- 顶部品牌 -->
+      <view class="brand-header">
+         <view class="brand-content">
+            <view class="brand-icon">
+               <text class="icon-text">💼</text>
+            </view>
+            <text class="brand-title">兼职系统</text>
          </view>
-         <view class="tip"> 首次登录会自动注册 </view>
+         <text class="brand-desc">轻松找兼职，安全有保障</text>
       </view>
-      <view class="page-form">
-         <view class="animate-fadeIn">
-            <!-- 使用TnSwitchTab组件实现登录方式切换 -->
-            <tn-switch-tab
-               v-model="currentTabIndex"
-               active-bg-color
-               active-text-color="#0AD9EE"
-               inactive-bg-color="#D1E7FE"
-               :tabs="tabs">
-               <view class="centext">
-                  <!-- 密码登录表单 -->
-                  <view v-if="currentTabIndex === 0" class="temp">
-                     <!-- 登录表单 -->
-                     <tn-form-item
-                        label="账号/邮箱"
-                        label-position="top"
-                        class="item">
-                        <tn-input
-                           type="text"
-                           placeholder="请输入账号或邮箱"
-                           placeholder-class="placeholder"
-                           v-model="loginForm.userAccount"
-                           :adjust-position="false" />
-                     </tn-form-item>
-                     <tn-form-item
-                        label="密码"
-                        label-position="top"
-                        class="item">
-                        <tn-input
-                           type="password"
-                           placeholder="请输入密码"
-                           placeholder-class="placeholder"
-                           v-model="loginForm.userPassword"
-                           :adjust-position="false" />
-                     </tn-form-item>
-                  </view>
 
-                  <!-- 验证码注册表单 -->
-                  <view v-if="currentTabIndex === 1" class="temp">
-                     <tn-form-item
-                        label="邮箱"
-                        label-position="top"
-                        class="item">
-                        <tn-input
-                           type="text"
-                           placeholder="请输入邮箱"
-                           placeholder-class="placeholder"
-                           v-model="registerForm.userAccount"
-                           :adjust-position="false" />
-                     </tn-form-item>
-                     <!-- 密码输入区域 -->
-                     <tn-form-item
-                        label="密码"
-                        label-position="top"
-                        class="item">
-                        <tn-input
-                           type="password"
-                           placeholder="请登录密码"
-                           placeholder-class="placeholder"
-                           v-model="registerForm.userPassword"
-                           :adjust-position="false" />
-                     </tn-form-item>
-                     <tn-form-item
-                        label="确认密码"
-                        label-position="top"
-                        class="item">
-                        <tn-input
-                           type="password"
-                           placeholder="请确认密码"
-                           placeholder-class="placeholder"
-                           v-model="registerForm.checkPassword"
-                           :adjust-position="false" />
-                     </tn-form-item>
-                     <tn-form-item
-                        label="验证码"
-                        label-position="top"
-                        class="item acea-row row-between-wrapper">
-                        <tn-input
-                           type="number"
-                           placeholder="请输入验证码"
-                           placeholder-class="placeholder"
-                           :maxlength="6"
-                           class="codetn-input"
-                           v-model="registerForm.planetCode"
-                           :adjust-position="false" />
-                        <view class="line"></view>
-                        <button
-                           class="code !text-[0.8em]"
-                           :class="countdown > 0 ? 'on' : ''"
-                           :disabled="countdown > 0"
-                           @click="sendVerificationCode()">
-                           {{
-                              countdown > 0
-                                 ? `${countdown}秒后重发`
-                                 : '获取验证码'
-                           }}
-                        </button>
-                     </tn-form-item>
-                  </view>
+      <!-- 登录表单 -->
+      <view class="form-container">
+         <!-- 手机号 -->
+         <view class="form-group">
+            <view class="form-label">
+               <text class="label-icon">👤</text>
+               <text class="label-text">手机号</text>
+            </view>
+            <input
+               type="tel"
+               v-model="loginForm.username"
+               class="form-input"
+               placeholder="请输入手机号"
+               maxlength="11" />
+         </view>
 
-                  <!-- <view class="btn" @click="handleLogin"> 登录 </view> -->
-                  <wd-button
-                     @click="submitForm"
-                     class="w-full"
-                     type="success"
-                     round="15">
-                     {{ currentTabIndex === 0 ? '登录' : '注册' }}
-                  </wd-button>
-                  <wd-button
-                     v-if="tokens.length > 0"
-                     @click="router.push({ name: 'userlst' })"
-                     class="w-full"
-                     round="15"
-                     style="margin-top: 20rpx"
-                     type="error">
-                     快捷登录
-                  </wd-button>
+         <!-- 密码 -->
+         <view class="form-group">
+            <view class="form-label-row">
+               <view class="form-label">
+                  <text class="label-icon">🔒</text>
+                  <text class="label-text">密码</text>
                </view>
-            </tn-switch-tab>
+               <text class="forgot-password" @click="handleForgotPassword"
+                  >忘记密码？</text
+               >
+            </view>
+            <input
+               type="password"
+               v-model="loginForm.password"
+               class="form-input"
+               placeholder="请输入密码" />
+         </view>
+
+         <!-- 协议勾选 -->
+         <view class="agree-section">
+            <view class="checkbox-wrap" @click="agreed = !agreed">
+               <view class="checkbox" :class="{ checked: agreed }">
+                  <text v-if="agreed" class="check-icon">✓</text>
+               </view>
+            </view>
+            <text class="agree-text">
+               登录即表示同意
+               <text class="link-text">《用户服务协议》</text>
+               和
+               <text class="link-text">《隐私政策》</text>
+            </text>
+         </view>
+
+         <!-- 登录按钮 -->
+         <button class="login-btn" @click="handleLogin">
+            <text class="btn-icon">📲</text>
+            <text class="btn-text">登录</text>
+         </button>
+
+         <!-- 其他登录方式 -->
+         <view class="other-login">
+            <view class="divider">
+               <view class="line"></view>
+               <text class="divider-text">其他登录方式</text>
+               <view class="line"></view>
+            </view>
+            <view class="social-buttons">
+               <view class="social-btn weixin" @click="handleWeixinLogin">
+                  <text class="social-icon">💬</text>
+               </view>
+               <view class="social-btn qq" @click="handleQQLogin">
+                  <text class="social-icon">🐧</text>
+               </view>
+            </view>
+         </view>
+
+         <!-- 注册跳转 -->
+         <view class="register-link">
+            <text class="register-text">还没有账号？</text>
+            <text class="register-btn" @click="goToRegister">立即注册</text>
          </view>
       </view>
    </view>
 </template>
 
 <script setup lang="ts">
-import bg from '@/static/imgs/bg.png';
-import { useRouter } from 'uni-mini-router';
-import { useStore } from '@/store/user';
-import { UserLogin, UserGetVerifyCode, UserRegister } from '@/api/user';
-import { sockeStore } from '@/store/socke';
-import { throttle } from '@/util';
-const webstore = sockeStore();
-const router = useRouter();
-const store = useStore();
-const tokens = ref(store.Tokens);
-// 登录表单数据
+import { ref, reactive, onMounted } from 'vue';
+import * as api from '@/api/user/index';
+import { useUserStore } from '@/store/user';
+import { useRoute } from 'uni-mini-router';
+
+const userStore = useUserStore();
+const route = useRoute();
+
+onMounted(() => {
+   loginForm.username = route.params.username || loginForm.username;
+});
+
 const loginForm = reactive({
-   userAccount: '',
-   userPassword: ''
+   username: '13800000001',
+   password: '12345678'
 });
-// 验证码倒计时
-const countdown = ref(0);
-let countdownTimer: number | null = null;
 
-// 注册表单数据
-const registerForm = reactive({
-   checkPassword: '',
-   planetCode: '',
-   userAccount: '',
-   userPassword: ''
-});
-// 新增的辅助变量和方法
-const current = ref(false);
-const pageTitle = ref('账号登录');
-const isHome = ref(false);
-const colorStyle = ref({
-   '--view-theme': '#0BD9EE'
-});
-// 发送验证码
-type SendType = 'login' | 'register';
-// 当前选中的标签索引
-const currentTabIndex = ref(0);
-type LoginType = 'password' | 'verificationCode';
-const loginMethod = ref<LoginType>('password');
-// 标签列表
-const tabs = ['密码登录', '验证码注册'];
-
-const sendVerificationCode = throttle(async () => {
-   if (!registerForm.userAccount) {
-      uni.showToast({
-         title: '请先输入账号',
-         icon: 'none'
-      });
-      //判断是否是邮箱格式
-
-      return;
-   }
-   //判断是否是邮箱格式
-   if (
-      !/^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/.test(
-         registerForm.userAccount
-      )
-   ) {
-      uni.showToast({
-         title: '请输入正确的邮箱格式',
-         icon: 'none'
-      });
-      return;
-   }
-
-   console.log('发送种什么');
-
-   // 在实际应用中，这里应该调用API发送验证码
-   uni.showLoading({
-      title: '发送中',
-      mask: true
-   });
-   let res = await UserGetVerifyCode({ email: registerForm.userAccount });
-
-   if (res.code === 0) {
-      uni.hideLoading();
-      uni.showToast({
-         title: '验证码已发送',
-         icon: 'none'
-      });
-      startCountdown();
-   }
-}, 500);
-// 开始倒计时
-const startCountdown = () => {
-   countdown.value = 60;
-   if (countdownTimer) clearInterval(countdownTimer);
-   countdownTimer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) {
-         if (countdownTimer) clearInterval(countdownTimer);
-         countdownTimer = null;
-      }
-   }, 1000) as unknown as number;
-};
-
-// 表单验证
-const validateForm = (type: 'login' | 'register'): boolean => {
-   if (type === 'login') {
-      if (!loginForm.userAccount) {
-         uni.showToast({
-            title: '请输入账号',
-            icon: 'none'
-         });
-         return false;
-      }
-
-      // 根据登录方式进行不同的验证
-      if (loginMethod.value === 'password') {
-         if (!loginForm.userPassword) {
-            uni.showToast({
-               title: '请输入密码',
-               icon: 'none'
-            });
-            return false;
-         }
-      } else {
-         if (!loginForm.planetCode) {
-            uni.showToast({
-               title: '请输入验证码',
-               icon: 'none'
-            });
-            return false;
-         }
-      }
-   } else {
-      if (!registerForm.userAccount) {
-         uni.showToast({
-            title: '请设置账号',
-            icon: 'none'
-         });
-         return false;
-      }
-      if (!registerForm.userPassword) {
-         uni.showToast({
-            title: '请设置密码',
-            icon: 'none'
-         });
-         return false;
-      }
-      if (registerForm.userPassword.length < 8) {
-         uni.showToast({
-            title: '密码长度不能小于8位',
-            icon: 'none'
-         });
-         return false;
-      }
-      if (registerForm.userPassword !== registerForm.checkPassword) {
-         uni.showToast({
-            title: '两次密码输入不一致',
-            icon: 'none'
-         });
-         return false;
-      }
-      if (!registerForm.planetCode) {
-         uni.showToast({
-            title: '请输入验证码',
-            icon: 'none'
-         });
-         return false;
-      }
-   }
-   return true;
-};
+// 是否同意协议
+const agreed = ref(true);
 
 // 处理登录
-const handleLogin = () => {
-   if (!validateForm('login')) return;
+const handleLogin = async () => {
+   if (!loginForm.username) {
+      uni.showToast({
+         title: '请输入正确手机号',
+         icon: 'none'
+      });
+      return;
+   }
 
+   if (!loginForm.password || loginForm.password.length < 6) {
+      uni.showToast({
+         title: '请输入至少6位密码',
+         icon: 'none'
+      });
+      return;
+   }
+
+   if (!agreed.value) {
+      uni.showToast({
+         title: '请同意用户服务协议',
+         icon: 'none'
+      });
+      return;
+   }
+
+   // 模拟登录成功
    uni.showLoading({
-      title: '登录中',
+      title: '登录中...',
       mask: true
    });
-   try {
-      UserLogin(loginForm).then(res => {
-         if (res.code == 0) {
-            store.setUserInfo(res.data);
-            store.setLocation();
-            store.setTokens({ ...res.data, tokens: loginForm, is_default: 1 });
-            if (webstore.$state.SocketTask) {
-               webstore.$state.SocketTask.close(); //关闭连接
-            }
-            setTimeout(() => {
-               webstore.websocke(res.data.id);
-            }, 1000);
 
+   try {
+      const res: any = await api.login(loginForm);
+
+      if (res.code === 0) {
+         userStore.setUserInfo({
+            userId: res.data.userId,
+            username: res.data.username,
+            userType: res.data.userType,
+            avatarUrl: res.data.avatarUrl,
+            studentId: res.data.studentId || '',
+            realName: res.data.realName || '',
+            age: res.data.age || 0,
+            gender: res.data.gender || 0,
+            phone: res.data.phone || '',
+            profession: res.data.profession || '',
+            introduction: res.data.introduction || '',
+            tagName: res.data.tagName || ''
+         });
+
+         setTimeout(() => {
             uni.hideLoading();
             uni.showToast({
                title: '登录成功',
-               icon: 'none',
-               duration: 1000,
-               success: () => {
-                  // 延迟跳转防止提示被覆盖
-                  setTimeout(() => {
-                     router.pushTab({ name: 'tabar' });
-                  }, 1500);
-               }
+               icon: 'success',
+               duration: 1500
             });
-         } else {
-            uni.hideLoading();
-         }
-      });
-   } catch (error) {
-      uni.hideLoading();
-      uni.showToast({
-         title: '登录失败,系统错误',
-         icon: 'none'
-      });
-   }
-};
-
-// 处理注册
-const handleRegister = async () => {
-   if (!validateForm('register')) return;
-
-   // 模拟注册成功
-
-   let res = await UserRegister(registerForm);
-
-   if (res.code == 0) {
-      uni.showToast({
-         title: '注册成功',
-         icon: 'none',
-         duration: 1500,
-         success: () => {
-            // 延迟跳转防止提示被覆盖
-            store.setUserInfo(res.data);
-            store.setTokens({
-               ...res.data,
-               tokens: {
-                  userAccount: registerForm.userAccount,
-                  userPassword: registerForm.userPassword
-               },
-               is_default: 1
-            });
-            if (webstore.$state.SocketTask) {
-               webstore.$state.SocketTask.close(); //关闭连接
-            }
             setTimeout(() => {
-               webstore.websocke(res.data.id);
-            }, 1000);
-            setTimeout(() => {
-               router.push({ name: 'personal' });
+               uni.switchTab({
+                  url: '/pages/tabar/index'
+               });
             }, 1500);
-         }
-      });
-   } else {
-      uni.showToast({
-         title: res.message,
-         icon: 'none'
-      });
-   }
-   // store.setUserInfo(registerForm.userAccount);
-
-   // // 显示注册成功提示
-};
-
-const submitForm = () => {
-   if (currentTabIndex.value === 0) {
-      handleLogin();
-   } else {
-      handleRegister();
+         }, 100);
+      }
+   } catch (err) {
+      uni.hideLoading();
+      console.error('登录失败', err);
    }
 };
 
-const back = () => {
-   router.back();
+// 忘记密码
+const handleForgotPassword = () => {
+   uni.showToast({
+      title: '忘记密码功能开发中',
+      icon: 'none'
+   });
+};
+
+// 微信登录
+const handleWeixinLogin = () => {
+   uni.showToast({
+      title: '微信登录功能开发中',
+      icon: 'none'
+   });
+};
+
+// QQ登录
+const handleQQLogin = () => {
+   uni.showToast({
+      title: 'QQ登录功能开发中',
+      icon: 'none'
+   });
+};
+
+// 跳转注册
+const goToRegister = () => {
+   uni.navigateTo({
+      url: '/pages/register/index'
+   });
 };
 </script>
 
 <style lang="scss" scoped>
-// 淡入动画
-@keyframes fadeIn {
-   from {
-      opacity: 0;
-      transform: translateY(10px);
-   }
-   to {
-      opacity: 1;
-      transform: translateY(0);
-   }
+.page {
+   min-height: 100vh;
+   background-color: #f8fafc;
 }
 
-// 抖动动画（补充原缺失的动画定义）
-@keyframes shake {
-   0%,
-   100% {
-      transform: translateX(0);
-   }
-   20% {
-      transform: translateX(-6rpx);
-   }
-   40% {
-      transform: translateX(6rpx);
-   }
-   60% {
-      transform: translateX(-4rpx);
-   }
-   80% {
-      transform: translateX(4rpx);
-   }
+.brand-header {
+   background-color: #3b82f6;
+   padding: 80rpx 40rpx 60rpx;
+   text-align: center;
 }
 
-// 复选框样式（修复深度选择器语法）
-::v-deep checkbox .wx-checkbox-tn-input.wx-checkbox-tn-input-checked {
-   border: 1px solid var(--view-theme) !important;
-   background-color: var(--view-theme) !important;
-   width: 28rpx;
-   height: 28rpx;
-   font-size: 24rpx;
-   color: #fff !important;
+.brand-content {
    display: flex;
    align-items: center;
    justify-content: center;
+   gap: 16rpx;
 }
 
-// 页面容器
-.wrapper {
-   background: linear-gradient(140deg, #9dd3ff, #ecf1f9);
-   height: 100vh;
-   width: 100vw;
-   position: relative;
+.brand-icon {
+   font-size: 48rpx;
+}
+
+.icon-text {
+   font-size: 48rpx;
+}
+
+.brand-title {
+   font-size: 48rpx;
+   font-weight: bold;
+   color: #fff;
+}
+
+.brand-desc {
+   display: block;
+   font-size: 26rpx;
+   color: rgba(255, 255, 255, 0.8);
+   margin-top: 16rpx;
+}
+
+.form-container {
+   padding: 48rpx 40rpx;
+}
+
+.form-group {
+   margin-bottom: 40rpx;
+}
+
+.form-label {
    display: flex;
-   flex-direction: column;
-   justify-content: flex-end;
+   align-items: center;
+   gap: 12rpx;
+   margin-bottom: 16rpx;
 }
 
-// 背景图区域
-.bag {
-   position: absolute;
-   top: var(--status-bar-height);
-   left: 0;
+.label-icon {
+   font-size: 28rpx;
+}
+
+.label-text {
+   font-size: 28rpx;
+   font-weight: 500;
+   color: #1e293b;
+}
+
+.form-label-row {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 16rpx;
+}
+
+.forgot-password {
+   font-size: 24rpx;
+   color: #3b82f6;
+}
+
+.form-input {
    width: 100%;
-   bottom: 0;
-   height: 100vw;
-   z-index: 0;
-}
+   height: 88rpx;
+   padding: 0 24rpx;
+   background-color: #fff;
+   border: 2rpx solid #e2e8f0;
+   border-radius: 12rpx;
+   font-size: 28rpx;
+   color: #1e293b;
+   box-sizing: border-box;
 
-// 页面信息区
-.page-msg {
-   padding-top: 160rpx;
-   margin-left: 72rpx;
-   z-index: 2;
-   position: relative;
-   max-width: calc(100% - 144rpx);
-
-   .title {
-      font-size: 48rpx;
-      font-weight: 500;
-      color: #333;
-      line-height: 68rpx;
-      font-weight: bold;
-      margin: 0 0 16rpx 0;
-   }
-
-   .tip {
-      font-size: 28rpx;
-      font-weight: 400;
-      color: #666;
-      line-height: 40rpx;
-      margin: 0;
+   &:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4rpx rgba(59, 130, 246, 0.15);
    }
 }
 
-// TnSwitchTab 组件样式定制
-:deep(.tn-switch-tab) {
+.agree-section {
+   display: flex;
+   align-items: flex-start;
+   gap: 12rpx;
+   margin-bottom: 48rpx;
+}
+
+.checkbox-wrap {
+   padding-top: 6rpx;
+}
+
+.checkbox {
+   width: 36rpx;
+   height: 36rpx;
+   border: 2rpx solid #cbd5e1;
+   border-radius: 6rpx;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+
+   &.checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+   }
+}
+
+.check-icon {
+   color: #fff;
+   font-size: 24rpx;
+   font-weight: bold;
+}
+
+.agree-text {
+   font-size: 24rpx;
+   color: #64748b;
+   flex: 1;
+   line-height: 1.5;
+}
+
+.link-text {
+   color: #3b82f6;
+}
+
+.login-btn {
+   width: 100%;
+   height: 96rpx;
+   background-color: #3b82f6;
+   border: none;
+   border-radius: 12rpx;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 12rpx;
+   margin-bottom: 60rpx;
+
+   &:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+   }
+}
+
+.btn-icon {
+   font-size: 32rpx;
+}
+
+.btn-text {
+   font-size: 32rpx;
+   font-weight: 600;
+   color: #fff;
+}
+
+.other-login {
+   margin-bottom: 40rpx;
+}
+
+.divider {
+   display: flex;
+   align-items: center;
+   gap: 20rpx;
    margin-bottom: 32rpx;
 }
 
-// 定制选中和未选中状态的颜色
-:deep(.tn-switch-tab__tab) {
-   &.tn-switch-tab__tab--active {
-      background-color: var(--view-theme);
-      color: #fff;
-   }
+.line {
+   flex: 1;
+   height: 1rpx;
+   background-color: #e2e8f0;
 }
 
-:deep() {
-   .wd-button {
-      border-radius: 0 !important;
-   }
-   .tn-form-item__label {
-      color: #9c9c9c;
-   }
-}
-.tn-input--input {
-   background: #f3f9fe !important;
-}
-// 表单区域
-.page-form {
-   box-sizing: border-box;
-   width: 90%;
-
-   margin: 100rpx auto 0;
-   z-index: 2;
-   position: relative;
-
-   .item {
-      margin: 20px 0;
-   }
-
-   .line {
-      width: 2rpx;
-      height: 28rpx;
-      background: #ccc;
-      margin: 0 16rpx;
-   }
-
-   .code {
-      color: #1aad19;
-      background: transparent;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 0 8rpx;
-
-      &.on {
-         color: #bbb !important;
-         cursor: not-allowed;
-      }
-   }
+.divider-text {
+   font-size: 24rpx;
+   color: #94a3b8;
 }
 
-// 标题栏（修复选择器，若为组件建议用类名）
-.title-bar {
-   position: relative;
+.social-buttons {
+   display: flex;
+   justify-content: center;
+   gap: 100rpx;
+}
+
+.social-btn {
+   width: 88rpx;
+   height: 88rpx;
+   border-radius: 50%;
    display: flex;
    align-items: center;
    justify-content: center;
-   height: 80rpx;
-   font-size: 34rpx;
-   font-weight: 500;
-   color: #333;
-   line-height: 48rpx;
 
-   .icon {
-      position: absolute;
-      left: 30rpx;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 80rpx;
-      height: 80rpx;
-      cursor: pointer;
+   &.weixin {
+      background-color: #e0f2fe;
+   }
 
-      image {
-         width: 35rpx;
-         height: 35rpx;
-         object-fit: contain;
-      }
+   &.qq {
+      background-color: #eff6ff;
+   }
+
+   &:active {
+      opacity: 0.8;
+      transform: scale(0.95);
    }
 }
 
-// 底部协议
-.protocol {
-   position: fixed;
-   bottom: 52rpx;
-   left: 0;
-   width: 100%;
-   margin: 0 auto;
-   color: #999;
-   font-size: 24rpx;
-   line-height: 36rpx;
-   text-align: center;
-   padding: 0 40rpx;
-   bottom: calc(52rpx + constant(safe-area-inset-bottom));
-   bottom: calc(52rpx + env(safe-area-inset-bottom));
+.social-icon {
+   font-size: 40rpx;
 }
 
-// 主题色类
-.main-color {
-   color: var(--view-theme) !important;
+.register-link {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   gap: 8rpx;
+   margin-top: 20rpx;
 }
 
-// 抖动动画类
-.trembling {
-   animation: shake 0.6s ease-in-out;
+.register-text {
+   font-size: 26rpx;
+   color: #64748b;
 }
 
-// 淡入动画类
-.animate-fadeIn {
-   animation: fadeIn 0.3s ease-out forwards;
-}
-.centext {
-   width: 90%;
-   margin: auto;
-   min-height: 70vh;
+.register-btn {
+   font-size: 26rpx;
+   color: #3b82f6;
+   font-weight: 500;
 }
 </style>

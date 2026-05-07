@@ -1,9 +1,10 @@
-import { useStore } from '@/store/user';
+import { useUserStore } from '@/store/user';
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 export const sockeStore = defineStore('socke', () => {
-   const { userInfo } = useStore();
+   const userStore = useUserStore();
+   const { userInfo } = userStore;
    //消息列表
    const UserTilteList = ref([]);
    //是否连接

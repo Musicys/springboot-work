@@ -2,7 +2,7 @@
 import Request from 'luch-request';
 const service = new Request();
 import { baseURL } from '@/util/system/CONFIG';
-
+import router from '@/router';
 export const configs = {
    cookie: null
 };
@@ -18,14 +18,22 @@ service.setConfig(config => {
 // 请求拦截器
 service.interceptors.request.use(
    config => {
-      // 可添加 Token 或其他自定义逻辑
+      // 从本地存储读取 token
+      const token = uni.getStorageSync('token');
+      console.log('读取', token);
+
+      if (token) {
+         config.header = {
+            ...config.header,
+            Authorization: `Bearer ${token}`
+         };
+      }
 
       if (configs.cookie != null) {
          config.header = {
             ...config.header,
             Cookie: configs.cookie
          };
-         console.log('请求头', configs.cookie);
       } else {
          config.header = {
             ...config.header
@@ -42,24 +50,34 @@ service.interceptors.request.use(
 service.interceptors.response.use(
    response => {
       const { data, config } = response;
-      // #ifdef APP-PLUS
 
-      if (
-         (config.url == '/api/user/login' ||
-            config.url == '/api/user/emacode' ||
-            config.url == '/api/user/register') &&
-         response.cookies[0]
-      ) {
-         console.log('response.cookies[0]', response.cookies[0]);
-
+      if (config.url == '/user/login') {
          configs.cookie = response.cookies[0];
+         // 如果返回了 token，存储到本地
+         if (data.data && data.data.token) {
+            uni.setStorageSync('token', data.data.token);
+         }
+         console.log('restoken', data.data.token);
       }
-      if (config.url == '/api/user/logout') {
+      if (config.url == '/user/logout') {
          configs.cookie = null;
+         // 清除本地存储的 token
+         uni.removeStorageSync('token');
       }
-      // #endif
+
       if (data.code === 40101) {
-         return data;
+         // 未登录
+
+         uni.showToast({
+            title: '登录过期，请重新登录',
+            icon: 'none',
+            success: () => {
+               router.push({
+                  name: 'login'
+               });
+            }
+         });
+         return Promise.reject(data);
       }
 
       if (data.code !== 0) {
@@ -67,14 +85,14 @@ service.interceptors.response.use(
             title: data.description || data.message || '请求失败',
             icon: 'none'
          });
-         return Promise.resolve(data);
+         return Promise.reject(data);
       }
-      return data;
+      return Promise.resolve(data);
    },
    error => {
       uni.showToast({ title: '网络错误', icon: 'error' });
 
-      return Promise.resolve(error);
+      return Promise.reject(error);
    }
 );
 export default service;

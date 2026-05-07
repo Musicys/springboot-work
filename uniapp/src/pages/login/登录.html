@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>兼职系统 - H5版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- 配置Tailwind自定义主题 -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3B82F6", // 主色调：蓝色
+              secondary: "#10B981", // 辅助色：绿色
+              neutral: "#64748B", // 中性色
+              light: "#F8FAFC", // 浅色背景
+              dark: "#1E293B", // 深色文字
+            },
+            fontFamily: {
+              sans: ["PingFang SC", "Helvetica Neue", "Arial", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .touch-active {
+          @apply active:opacity-80 active:scale-95 transition-all duration-200;
+        }
+        .card-shadow {
+          @apply shadow-md shadow-primary/10;
+        }
+        .input-style {
+          @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+        }
+      }
+
+      /* 解决移动端点击高亮 */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面容器 - 默认显示登录页，登录后切换到首页 -->
+    <div id="appContainer">
+      <!-- ========== 登录页面 ========== -->
+      <div id="loginPage" class="block">
+        <!-- 顶部品牌 -->
+        <div class="bg-primary text-white p-8 text-center">
+          <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
+            <i class="fa fa-briefcase"></i>
+            <span>兼职系统</span>
+          </h1>
+          <p class="mt-2 text-blue-100 text-sm">轻松找兼职，安全有保障</p>
+        </div>
+
+        <!-- 登录表单 -->
+        <div class="p-6 space-y-6">
+          <!-- 用户名/手机号 -->
+          <div class="space-y-2">
+            <label for="mobile" class="block text-sm font-medium text-dark">
+              <i class="fa fa-user text-primary mr-1"></i>手机号
+            </label>
+            <input
+              type="tel"
+              id="mobile"
+              class="input-style"
+              placeholder="请输入手机号"
+              maxlength="11"
+              required
+            />
+          </div>
+
+          <!-- 密码 -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label for="password" class="block text-sm font-medium text-dark">
+                <i class="fa fa-lock text-primary mr-1"></i>密码
+              </label>
+              <a href="#" class="text-xs text-primary">忘记密码？</a>
+            </div>
+            <input
+              type="password"
+              id="password"
+              class="input-style"
+              placeholder="请输入密码"
+              required
+            />
+          </div>
+
+          <!-- 协议勾选 -->
+          <div class="flex items-start gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="agree"
+              class="w-5 h-5 text-primary mt-1"
+              checked
+            />
+            <label for="agree" class="text-xs text-neutral">
+              登录即表示同意<a href="#" class="text-primary">《用户服务协议》</a
+              >和<a href="#" class="text-primary">《隐私政策》</a>
+            </label>
+          </div>
+
+          <!-- 登录按钮 -->
+          <button
+            id="loginBtn"
+            class="w-full bg-primary text-white font-medium py-3 rounded-lg touch-active flex items-center justify-center gap-2 text-lg"
+          >
+            <i class="fa fa-sign-in"></i>
+            <span>登录</span>
+          </button>
+
+          <!-- 其他登录方式 -->
+          <div class="relative mt-8">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-light text-neutral">其他登录方式</span>
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-8 mt-6">
+            <a
+              href="#"
+              class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-500 touch-active"
+            >
+              <i class="fa fa-weixin text-2xl"></i>
+            </a>
+            <a
+              href="#"
+              class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 touch-active"
+            >
+              <i class="fa fa-qq text-2xl"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript 交互逻辑 -->
+    <script>
+      // DOM元素
+      const loginPage = document.getElementById("loginPage");
+      const homePage = document.getElementById("homePage");
+      const loginBtn = document.getElementById("loginBtn");
+
+      // 登录按钮事件
+      loginBtn.addEventListener("click", function () {
+        const mobile = document.getElementById("mobile").value;
+        const password = document.getElementById("password").value;
+
+        if (!mobile || mobile.length !== 11) {
+          alert("请输入正确的手机号");
+          return;
+        }
+
+        if (!password || password.length < 6) {
+          alert("请输入密码，密码长度至少6位");
+          return;
+        }
+
+        // 直接跳转到首页
+        window.location.href = "tabar首页.html";
+      });
+
+      // 适配移动端输入框
+      const inputs = document.querySelectorAll("input");
+      inputs.forEach((input) => {
+        input.addEventListener("focus", function () {
+          // 输入框聚焦时页面上移，避免被键盘遮挡
+          document.body.style.marginBottom = "200px";
+        });
+
+        input.addEventListener("blur", function () {
+          // 失焦时恢复
+          document.body.style.marginBottom = "0";
+        });
+      });
+
+      // 监听滚动，优化导航栏样式
+      window.addEventListener("scroll", function () {
+        const header = document.querySelector("header");
+        if (window.scrollY > 10) {
+          header.classList.add("shadow");
+        } else {
+          header.classList.remove("shadow");
+        }
+      });
+    </script>
+  </body>
+</html>

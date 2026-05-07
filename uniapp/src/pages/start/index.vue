@@ -1,56 +1,72 @@
 <template>
-   <view class="page">
-      <view class="page-top">
-         <image :src="LoginIMG" mode="widthFix"></image>
-         <h1>趣友</h1>
-         <text>这是个兴趣爱号的交友平台</text>
+   <view class="start-page-container">
+      <view class="start-page-top-section">
+         <image
+            class="start-page-logo-image"
+            src="https://ts1.tc.mm.bing.net/th/id/OIP-C.nzfFhotcNECcnN1Z4bxBWAAAAA?rs=1&pid=ImgDetMain&o=7&rm=3"
+            mode="aspectFit"></image>
+         <h1 class="start-page-title">南昌交通学院</h1>
+         <text class="start-page-subtitle">培养交通人才，服务社会发展</text>
       </view>
 
-      <view class="page-butom">
+      <view class="start-page-bottom-section">
          <wd-button
             type="success"
-            class="green"
+            class="start-page-email-register-button"
             @click="goLoginform('/pages/login/index')">
-            <wd-icon name="mail" class="!mr-1" size="16px"></wd-icon
-            ><text class="text-[1.2em]">邮箱注册</text>
+            <wd-icon
+               name="mail"
+               class="start-page-button-icon"
+               size="16px"></wd-icon
+            ><text class="start-page-button-text">邮箱注册</text>
          </wd-button>
 
-         <wd-button type="warning" class="word" @click="goLoginform(2)">
-            <wd-icon name="mail" class="!mr-1" size="16px"></wd-icon
-            ><text class="text-[1.2em]">账号登录</text>
+         <wd-button
+            type="warning"
+            class="start-page-account-login-button"
+            @click="goLoginform(2)">
+            <wd-icon
+               name="mail"
+               class="start-page-button-icon"
+               size="16px"></wd-icon
+            ><text class="start-page-button-text">账号登录</text>
          </wd-button>
 
-         <view class="box">
-            <label>
-               <checkbox class="box-check" :checked="Isyuedu" @click="change" />
-               <text>
-                  我已经阅读趣友的
-                  <text>《用户协议》</text>
+         <view class="start-page-agreement-container">
+            <label class="start-page-agreement-label">
+               <checkbox
+                  class="start-page-agreement-checkbox"
+                  :checked="Isyuedu"
+                  @click="change" />
+               <text class="start-page-agreement-text">
+                  我已经阅读南昌交通学院的
+                  <text class="start-page-agreement-link">《用户协议》</text>
                   和
-                  <text>《隐私策略》</text>
+                  <text class="start-page-agreement-link">《隐私策略》</text>
                </text>
             </label>
          </view>
       </view>
    </view>
    <wd-action-sheet v-model="show" title="提示" @close="close">
-      <view class="cart">
-         <h1>请阅读以下条款</h1>
-         <text>
-            我已经阅读趣友的
+      <view class="start-page-modal-container">
+         <h1 class="start-page-modal-title">请阅读以下条款</h1>
+         <text class="start-page-modal-content">
+            我已经阅读南昌交通学院的
 
-            <text>《用户协议》</text>
+            <text class="start-page-modal-link">《用户协议》</text>
             和
-            <text>《隐私策略》</text>
+            <text class="start-page-modal-link">《隐私策略》</text>
          </text>
 
-         <view class="but" @click="gohede"> 同意并继续 </view>
+         <view class="start-page-modal-confirm-button" @click="gohede">
+            同意并继续
+         </view>
       </view>
    </wd-action-sheet>
 </template>
 
 <script lang="ts" setup>
-import LoginIMG from '@/static/imgs/login.png';
 import { useRouter } from 'uni-mini-router';
 const router = useRouter();
 const IslDing = ref(false);
@@ -76,135 +92,187 @@ const gohede = () => {
 </script>
 
 <style lang="scss" scoped>
-.cart {
-   padding: 1me;
-   width: 80%;
-   margin: auto;
-
+.start-page-container {
    display: flex;
    flex-direction: column;
-   justify-content: space-between;
-   padding-bottom: env(safe-area-inset-bottom); /* 底部安全区 */
-   margin-bottom: 1em;
-   h1 {
-      font-size: 1.5em;
-   }
-
-   text {
-      font-size: 0.8em;
-   }
-
-   .but {
-      width: 100%;
-      margin: auto;
-      margin-top: 3em;
-      border-radius: 15rpx;
-      font-size: 0.8em;
-      height: 3em;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: blue;
-      border: 1rpx solid black;
-      color: white;
-   }
-}
-
-.page {
-   display: flex;
-   flex-direction: column;
-   padding-top: var(--status-bar-height); /* 状态栏 */
-   padding-bottom: env(safe-area-inset-bottom); /* 底部安全区 */
+   padding-top: var(--status-bar-height);
+   padding-bottom: env(safe-area-inset-bottom);
    width: 100vw;
    height: 100vh;
    justify-content: space-between;
+   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
 
-   .page-top {
-      display: flex;
-      flex-direction: column;
+.start-page-top-section {
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   padding-top: 120rpx;
+}
 
-      justify-content: start;
-      align-self: center;
+.start-page-logo-image {
+   width: 200rpx;
+   height: 200rpx;
+   border-radius: 24rpx;
+   box-shadow: 0 8rpx 24rpx rgba(8, 51, 216, 0.15);
+   margin-bottom: 40rpx;
+}
 
-      image {
-         width: 5em;
+.start-page-title {
+   font-size: 56rpx;
+   font-weight: 700;
+   color: #0833d8;
+   margin-bottom: 16rpx;
+   text-align: center;
+   letter-spacing: 2rpx;
+}
 
-         text-align: center;
-         margin: auto;
-         margin-top: 5em;
-      }
+.start-page-subtitle {
+   font-size: 28rpx;
+   color: #666;
+   text-align: center;
+   line-height: 1.6;
+   padding: 0 40rpx;
+}
 
-      h1 {
-         margin-top: 0.5em;
-         font-size: 1.8em;
-         text-align: center;
-      }
+.start-page-bottom-section {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   padding-bottom: 60rpx;
+}
 
-      text {
-         margin-top: 1em;
-         font-size: 0.8em;
-         text-align: center;
-         color: rgba(0, 0, 0, 0.6);
-      }
+.start-page-email-register-button {
+   background: #0833d8;
+   border: none;
+   width: 600rpx;
+   margin-bottom: 24rpx;
+   border-radius: 48rpx;
+   height: 96rpx;
+   color: white;
+   font-weight: 600;
+   font-size: 32rpx;
+   box-shadow: 0 8rpx 24rpx rgba(8, 51, 216, 0.3);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   transition: all 0.3s ease;
+
+   &:active {
+      transform: scale(0.98);
+      box-shadow: 0 4rpx 12rpx rgba(8, 51, 216, 0.2);
    }
+}
 
-   .page-butom {
-      .green {
-         background: green;
-         border: 1rpx solid black;
-         width: 80%;
-         margin: 1em auto;
-         border-radius: 15rpx;
-         font-size: 0.8em;
-         height: 3em;
-         width: 80%;
+.start-page-account-login-button {
+   border: 2rpx solid #0833d8;
+   background: white;
+   width: 600rpx;
+   margin-bottom: 32rpx;
+   border-radius: 48rpx;
+   height: 96rpx;
+   color: #0833d8;
+   font-weight: 600;
+   font-size: 32rpx;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   transition: all 0.3s ease;
 
-         display: flex;
-         justify-content: center;
+   &:active {
+      transform: scale(0.98);
+      background: #f5f8ff;
+   }
+}
 
-         align-items: center;
+.start-page-button-icon {
+   margin-right: 12rpx;
+}
 
-         & > text {
-            margin-left: 0.5em;
-         }
-      }
+.start-page-button-text {
+   font-size: 32rpx;
+}
 
-      .word {
-         border: 1rpx solid black;
-         background: yellow;
-         width: 80%;
-         margin: 1em auto;
-         border-radius: 15rpx;
-         font-size: 0.8em;
-         height: 3em;
-         width: 80%;
-         color: black;
-         display: flex;
-         justify-content: center;
+.start-page-agreement-container {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   width: 600rpx;
+}
 
-         align-items: center;
+.start-page-agreement-label {
+   display: flex;
+   align-items: flex-start;
+   font-size: 24rpx;
+   line-height: 1.8;
+}
 
-         & > text {
-            margin-left: 0.5em;
-         }
-      }
+.start-page-agreement-checkbox {
+   transform: scale(0.8);
+   margin-top: 4rpx;
+   margin-right: 8rpx;
+}
 
-      .box {
-         display: flex;
-         justify-content: center;
+.start-page-agreement-text {
+   color: #999;
+   font-size: 24rpx;
+}
 
-         align-items: center;
-         font-size: 0.6em;
-         width: 80%;
+.start-page-agreement-link {
+   color: #0833d8;
+   font-weight: 500;
+}
 
-         .box-check {
-            transform: scale(0.7);
+.start-page-modal-container {
+   padding: 40rpx;
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+   padding-bottom: env(safe-area-inset-bottom);
+   margin-bottom: 20rpx;
+}
 
-            & > text {
-               color: rgba(0, 0, 0, 0.6);
-            }
-         }
-      }
+.start-page-modal-title {
+   font-size: 40rpx;
+   font-weight: 700;
+   color: #333;
+   margin-bottom: 32rpx;
+   text-align: center;
+}
+
+.start-page-modal-content {
+   font-size: 28rpx;
+   color: #666;
+   line-height: 1.8;
+   text-align: center;
+   margin-bottom: 40rpx;
+}
+
+.start-page-modal-link {
+   color: #0833d8;
+   font-weight: 500;
+}
+
+.start-page-modal-confirm-button {
+   width: 100%;
+   height: 88rpx;
+   border-radius: 44rpx;
+   font-size: 32rpx;
+   font-weight: 600;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   background: #0833d8;
+   border: none;
+   color: white;
+   box-shadow: 0 8rpx 24rpx rgba(8, 51, 216, 0.3);
+   transition: all 0.3s ease;
+
+   &:active {
+      transform: scale(0.98);
+      box-shadow: 0 4rpx 12rpx rgba(8, 51, 216, 0.2);
    }
 }
 </style>

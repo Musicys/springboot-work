@@ -1,492 +1,505 @@
 <template>
    <view class="page">
-      <wd-tabs v-model="tab" swipeable>
-         <block v-for="item in tabs" :key="item.value">
-            <wd-tab :title="`${item.title}`" :name="item.value">
-               <view class="content" v-if="item.value == '0'">
-                  <Alluser v-if="tab == 0" :data="fromAlluser"></Alluser> </view
-               ><view class="content" v-if="item.value == '1'">
-                  <Dicuser v-if="tab == 1" :data="fromDicuser"></Dicuser>
-               </view>
-               <view class="content" v-if="item.value == '2'">
-                  <ChatList v-if="tab == 2" :data="fromChatList"></ChatList>
-               </view>
-            </wd-tab>
-         </block>
-      </wd-tabs>
-      <view class="but" v-if="tab == 0">
-         <wd-icon @click="show = true" name="setting"></wd-icon>
+      <!-- 顶部导航 -->
+      <view class="navbar">
+         <view class="navbar-content">
+            <!-- 左侧位置筛选 -->
+            <view class="location" @click="showLocationPicker = true">
+               <tn-icon name="map-marker" size="24" color="#3B82F6"></tn-icon>
+               <text class="location-text">{{ currentLocation }}</text>
+               <tn-icon name="chevron-down" size="18" color="#64748B"></tn-icon>
+            </view>
+
+            <!-- 中间搜索框 -->
+            <view class="search-box" @click="handleSearch">
+               <tn-icon name="search" size="20" color="#9CA3AF"></tn-icon>
+               <text class="search-placeholder">搜索兼职</text>
+            </view>
+
+            <!-- 右侧用户头像 -->
+            <image
+               class="user-avatar"
+               :src="
+                  userStore.userInfo?.avatarUrl ||
+                  'https://picsum.photos/seed/user/64/64'
+               "
+               mode="aspectFill"
+               @click="goToMine"></image>
+         </view>
       </view>
-      <view v-if="show" class="popup-overlay" @click="handleClose"></view>
-      <view v-if="show" class="popup-container">
-         <view class="popup-content">
-            <view class="popup-header">
-               <text class="popup-title">筛选条件</text>
-               <view class="popup-close" @click="handleClose">
-                  <text>×</text>
+
+      <!-- 轮播横幅 -->
+      <swiper
+         :indicator-dots="true"
+         :autoplay="true"
+         :interval="4000"
+         :circular="true"
+         indicator-color="rgba(255,255,255,0.5)"
+         indicator-active-color="#fff"
+         class="banner-swiper">
+         <swiper-item v-for="(item, index) in bannerList" :key="index">
+            <view class="banner-item">
+               <image
+                  :src="item.image"
+                  mode="aspectFill"
+                  class="banner-img"></image>
+               <view class="banner-overlay">
+                  <text class="banner-title">{{ item.title }}</text>
+                  <text class="banner-subtitle">{{ item.subtitle }}</text>
                </view>
             </view>
+         </swiper-item>
+      </swiper>
 
-            <view class="filter-section">
-               <text class="filter-label">性别</text>
-               <view class="gender-options">
-                  <view
-                     v-for="option in genderOptions"
-                     :key="option.value"
-                     class="gender-option"
-                     :class="{ active: fromAlluser.gender === option.value }"
-                     @click="selectGender(option.value)">
-                     <text class="gender-text">{{ option.label }}</text>
-                  </view>
-               </view>
-            </view>
-
-            <view class="filter-section">
-               <text class="filter-label">年龄范围</text>
-               <view class="picker-container">
-                  <picker
-                     mode="selector"
-                     :range="ageOptions[0]"
-                     :value="getAgeIndex"
-                     @change="handleAgeChange"
-                     class="native-picker">
-                     <view class="picker-display">
-                        {{ fromAlluser.age || '选择年龄范围' }}
-                        <text class="picker-arrow">▼</text>
-                     </view>
-                  </picker>
-               </view>
-            </view>
-
-            <view class="filter-section">
+      <!-- 分类导航 -->
+      <view class="category-section">
+         <view class="category-grid">
+            <view
+               class="category-item"
+               v-for="item in categories"
+               :key="item.id"
+               @click="goToPartTime(item.id)">
                <view
-                  style="
-                     display: flex;
-                     align-items: center;
-                     margin-bottom: 20rpx;
-                  ">
-                  <text class="filter-label" style="margin-bottom: 0; flex: 1"
-                     >地区</text
-                  >
-                  <view class="location-refresh" @click="refreshLocation">
-                     <wd-icon
-                        name="refresh"
-                        size="24px"
-                        color="#ff69b4"></wd-icon>
-                  </view>
+                  class="category-icon"
+                  :style="{ backgroundColor: item.bgColor }">
+                  <tn-icon
+                     :name="item.icon"
+                     :size="36"
+                     :color="item.color"></tn-icon>
                </view>
-               <view class="picker-container">
-                  <picker
-                     mode="selector"
-                     :range="provinceOptions[0]"
-                     :value="getProvinceIndex"
-                     @change="handleProvinceChange"
-                     class="native-picker">
-                     <view class="picker-display">
-                        {{ fromAlluser.province || '选择地区' }}
-                        <text class="picker-arrow">▼</text>
-                     </view>
-                  </picker>
-               </view>
-            </view>
-
-            <view class="popup-footer">
-               <button @click="resetFilter" class="reset-btn">重置</button>
-               <button @click="submit" class="submit-btn">确定</button>
+               <text class="category-name">{{ item.name }}</text>
             </view>
          </view>
       </view>
+
+      <!-- 热门兼职 -->
+      <view class="section">
+         <view class="section-header">
+            <text class="section-title">热门兼职</text>
+            <view class="section-more" @click="goToPartTimeList">
+               <text class="more-text" @tap="router.push({ name: 'prartlst' })"
+                  >更多</text
+               >
+               <tn-icon
+                  name="chevron-right"
+                  size="18"
+                  color="#3B82F6"></tn-icon>
+            </view>
+         </view>
+         <view class="job-list">
+            <view
+               class="job-card"
+               v-for="job in hotJobs"
+               :key="job.id"
+               @click="goToJobDetail(job.id)">
+               <image
+                  :src="job.image"
+                  mode="aspectFill"
+                  class="job-image"></image>
+               <view class="job-info">
+                  <view class="job-header">
+                     <text class="job-title">{{ job.title }}</text>
+                     <text class="job-salary"
+                        >¥{{ job.salary }}/{{ job.salaryUnit }}</text
+                     >
+                  </view>
+                  <view class="job-tags">
+                     <view class="job-tag" :class="job.type">{{
+                        job.typeText
+                     }}</view>
+                     <view class="job-tag">{{ job.timeText }}</view>
+                  </view>
+                  <text class="job-desc">{{ job.description }}</text>
+               </view>
+            </view>
+         </view>
+      </view>
+
+      <!-- 底部占位 -->
+      <view class="bottom-space"></view>
    </view>
 </template>
 
 <script setup lang="ts">
-import Alluser from '@/components/home-list/Alluser.vue';
-import Dicuser from '@/components/home-list/Dicuser.vue';
-import ChatList from '@/components/home-list/ChatList.vue';
-import { UserUpdateLongitude } from '@/api/user';
-const show = ref(false);
-const fromAlluser = ref({
-   gender: null, //性别
-   age: '', //年龄范围
-   province: '' //地区
-});
-const fromDicuser = ref({});
-const fromChatList = ref({
-   sach: ''
-});
-const genderOptions = ref([
-   { label: '不限', value: null },
-   { label: '男', value: 1 },
-   { label: '女', value: 0 }
-]);
-const ageOptions = ref([
-   ['不限', '18-22岁', '23-26岁', '27-30岁', '31-35岁', '36岁以上']
-]);
+import router from '@/router';
+import { ref, onMounted } from 'vue';
+import * as apis from '@/api/job';
+import { useUserStore } from '@/store/user';
 
-const tabs = ref([
-   { title: '全部', value: '0' },
-   { title: '附近', value: '1' },
-   { title: '趣味群', value: '2' }
-]);
-const tab = ref(0);
+// 创建用户store
+const userStore = useUserStore();
 
-const provinceOptions = ref([
-   [
-      '不限',
-      '北京',
-      '上海',
-      '天津',
-      '重庆',
-      '河北',
-      '山西',
-      '辽宁',
-      '吉林',
-      '黑龙江',
-      '江苏',
-      '浙江',
-      '安徽',
-      '福建',
-      '江西',
-      '山东',
-      '河南',
-      '湖北',
-      '湖南',
-      '广东',
-      '广西',
-      '海南',
-      '四川',
-      '贵州',
-      '云南',
-      '西藏',
-      '陕西',
-      '甘肃',
-      '青海',
-      '宁夏',
-      '新疆',
-      '香港',
-      '澳门',
-      '台湾'
-   ]
-]);
-const getAgeIndex = computed(() => {
-   const index = ageOptions.value[0].findIndex(
-      option => option === fromAlluser.value.age
-   );
-   return index !== -1 ? index : 0;
-});
-const getProvinceIndex = computed(() => {
-   const index = provinceOptions.value[0].findIndex(
-      option => option === fromAlluser.value.province
-   );
-   return index !== -1 ? index : 0;
-});
+// 当前位置
+const currentLocation = ref('附近');
+const showLocationPicker = ref(false);
 
-const selectGender = (gender: string) => {
-   fromAlluser.value.gender = gender;
-};
-const handleAgeChange = (e: any) => {
-   fromAlluser.value.age = ageOptions.value[0][e.detail.value];
-};
-
-const handleProvinceChange = (e: any) => {
-   fromAlluser.value.province = provinceOptions.value[0][e.detail.value];
-};
-
-const resetFilter = () => {
-   fromAlluser.value = {
-      gender: '',
-      age: '',
-      province: ''
-   };
-};
-
-const submit = () => {
-   if (tab.value == 0) {
-      if (fromAlluser.value.province == '不限') {
-         fromAlluser.value.province = '';
-      }
-      fromAlluser.value = { ...fromAlluser.value };
-      // 这里可以添加筛选逻辑
-   } else if (tab.value == 1) {
-      fromDicuser.value = { ...fromDicuser.value };
-   } else if (tab.value == 2) {
-      fromChatList.value = { ...fromChatList.value };
+// 轮播数据
+const bannerList = ref([
+   {
+      title: '暑期兼职专场',
+      subtitle: '海量岗位，薪资日结',
+      image: 'https://picsum.photos/seed/job5/750/300'
+   },
+   {
+      title: '新人专享福利',
+      subtitle: '首单立减20元',
+      image: 'https://picsum.photos/seed/job9/750/300'
+   },
+   {
+      title: '技能认证专区',
+      subtitle: '认证享优先推荐',
+      image: 'https://picsum.photos/seed/job10/750/300'
    }
+]);
 
-   // 关闭弹窗
-   show.value = false;
-};
-// 关闭弹窗
-const handleClose = () => {
-   show.value = false;
-};
-// 刷新位置 - 确保此方法可在模板中访问
-const refreshLocation = () => {
-   // 调用uni.getLocation获取用户位置
-   uni.getLocation({
-      type: 'wgs84',
-      geocode: true,
-      success: function (res) {
-         // #ifdef APP-PLUS
-         fromAlluser.value.province = res.address.province;
-         // #endif
-         // #ifdef H5
-         UserUpdateLongitude({
-            lat: res.latitude,
-            lng: res.longitude
-         }).then(res => {
-            if (res.code == 0) {
-               //更新成功
+// 分类数据
+const categories = ref([
+   {
+      id: '1',
+      name: '线上兼职',
+      icon: 'monitor',
+      color: '#3B82F6',
+      bgColor: '#DBEAFE'
+   },
+   {
+      id: '2',
+      name: '线下兼职',
+      icon: 'building',
+      color: '#10B981',
+      bgColor: '#D1FAE5'
+   },
+   {
+      id: '3',
+      name: '校园兼职',
+      icon: 'school',
+      color: '#F59E0B',
+      bgColor: '#FEF3C7'
+   },
+   {
+      id: '4',
+      name: '校外兼职',
+      icon: 'star',
+      color: '#8B5CF6',
+      bgColor: '#EDE9FE'
+   }
+]);
 
-               fromAlluser.value.province = res.data.province;
-            }
-         });
-         // #endif
-      },
-      fail: function (err) {
-         console.error('获取位置失败:', err);
-         uni.showToast({
-            title: '获取位置失败，请检查定位权限',
-            icon: 'error',
-            duration: 2000
-         });
+// 热门兼职数据
+const hotJobs = ref<any[]>([]);
 
-         // 引导用户打开定位权限
-         uni.openSetting({
-            success: res => {
-               console.log('设置结果:', res);
-            }
-         });
+// 获取兼职列表
+const fetchJobList = async () => {
+   try {
+      const res = await apis.getJobList({ pageNum: 1, pageSize: 5 });
+      if (res.code === 0 && res.data && res.data.records) {
+         hotJobs.value = res.data.records.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            salary: item.salaryMin,
+            salaryUnit: '天',
+            type: item.jobType === 1 ? 'online' : 'offline',
+            typeText: item.jobTypeDesc || '其他',
+            timeText: item.workTimeDesc || '不限时间',
+            description: item.briefIntro || item.description || '',
+            image:
+               item.coverImages && item.coverImages.length > 0
+                  ? item.coverImages[0]
+                  : 'https://picsum.photos/seed/job/100/100'
+         }));
       }
+   } catch (error) {
+      console.error('获取兼职列表失败:', error);
+   }
+};
+
+onMounted(() => {
+   fetchJobList();
+});
+
+// 处理搜索
+const handleSearch = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/home/prartlst/index'
+   });
+};
+
+// 跳转兼职列表
+const goToPartTime = (type: string) => {
+   uni.navigateTo({
+      url: `/pages/tabar/home/prartlst/index?jobType=${type}`
+   });
+};
+
+// 跳转兼职列表页
+const goToPartTimeList = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/home/parttime/index'
+   });
+};
+
+// 跳转兼职详情
+const goToJobDetail = (id: number) => {
+   uni.navigateTo({
+      url: `/pages/tabar/home/details/index?id=${id}`
+   });
+};
+
+// 跳转我的页面
+const goToMine = () => {
+   uni.switchTab({
+      url: '/pages/tabar/index'
    });
 };
 </script>
 
 <style lang="scss" scoped>
-:deep() {
-   .wd-tabs__nav-container {
-      width: 350rpx;
-   }
-   .is-active {
-      font-size: 36rpx !important;
-   }
-   .wd-tabs__nav {
-      position: fixed;
-      top: var(--status-bar-height);
-      z-index: 1;
-      background: var(--quyou-nav-bg-color);
-      height: $quyou-nav-height;
-   }
-   .zp-page-top {
-      z-index: -1 !important;
-   }
-}
-
 .page {
-   position: relative;
+   min-height: 100vh;
+   background-color: #f8fafc;
+   padding-top: calc(var(--status-bar-height) + 90rpx);
 }
 
-.content {
-   height: 95vh;
-   background: linear-gradient(160deg, #f2e9d2, #fff);
-}
-
-.but {
-   position: fixed;
-   z-index: 9999 !important;
-   top: var(--status-bar-height);
-   z-index: 99;
-   transform: translateY(50%);
-   right: 50rpx;
-   display: flex;
-   justify-items: center;
-   align-items: center;
-   font-size: 1.2em;
-   color: rgba(0, 0, 0, 0.5);
-}
-
-/* 弹出层样式 */
-.popup-overlay {
+.navbar {
    position: fixed;
    top: 0;
    left: 0;
-   width: 100%;
-   height: 100%;
-   background-color: rgba(0, 0, 0, 0.5);
-   z-index: 998;
-}
-
-.popup-container {
-   position: fixed;
-   bottom: 130rpx;
-   left: 0;
-   width: 100%;
-   height: 70vh;
-   background-color: #fff;
-   border-radius: 30rpx 30rpx 0 0;
+   right: 0;
    z-index: 999;
-   display: flex;
-   flex-direction: column;
+   background-color: #fff;
+   padding-top: var(--status-bar-height);
+   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
-.popup-content {
-   height: 100%;
+.navbar-content {
    display: flex;
-   flex-direction: column;
-   padding: 0 30rpx;
-}
-
-.popup-header {
-   display: flex;
-   justify-content: center;
    align-items: center;
-   padding: 30rpx 0;
-   border-bottom: 1px solid #eee;
-   position: relative;
-   margin-bottom: 0;
+   justify-content: space-between;
+   padding: 16rpx 24rpx;
 }
 
-.popup-title {
+.location {
+   display: flex;
+   align-items: center;
+   gap: 8rpx;
+   padding: 12rpx 16rpx;
+   background-color: #f1f5f9;
+   border-radius: 24rpx;
+}
+
+.location-text {
+   font-size: 26rpx;
+   color: #1e293b;
+   font-weight: 500;
+}
+
+.search-box {
+   flex: 1;
+   display: flex;
+   align-items: center;
+   gap: 12rpx;
+   margin: 0 20rpx;
+   padding: 16rpx 24rpx;
+   background-color: #f1f5f9;
+   border-radius: 32rpx;
+}
+
+.search-placeholder {
+   font-size: 26rpx;
+   color: #9ca3af;
+}
+
+.user-avatar {
+   width: 64rpx;
+   height: 64rpx;
+   border-radius: 50%;
+   border: 2rpx solid #eff6ff;
+}
+
+.banner-swiper {
+   width: 100%;
+   height: 300rpx;
+}
+
+.banner-item {
+   position: relative;
+   width: 100%;
+   height: 100%;
+}
+
+.banner-img {
+   width: 100%;
+   height: 100%;
+}
+
+.banner-overlay {
+   position: absolute;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   padding: 24rpx;
+   background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.banner-title {
+   display: block;
    font-size: 36rpx;
    font-weight: bold;
-   color: #333;
+   color: #fff;
+   margin-bottom: 8rpx;
 }
 
-.popup-close {
-   position: absolute;
-   right: 0;
-   width: 60rpx;
-   height: 60rpx;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   font-size: 48rpx;
-   color: #999;
+.banner-subtitle {
+   font-size: 24rpx;
+   color: rgba(255, 255, 255, 0.8);
 }
 
-/* 筛选区域样式 */
-.filter-section {
-   padding: 30rpx 0;
-   border-bottom: 1px solid #f5f5f5;
-   margin-bottom: 0;
-}
-
-.filter-label {
-   display: block;
-   font-size: 28rpx;
-   color: #666;
-   margin-bottom: 20rpx;
-}
-
-/* 性别选择样式 */
-.gender-options {
-   display: flex;
-   flex-wrap: wrap;
-   gap: 20rpx;
-}
-
-.gender-option {
-   padding: 20rpx 40rpx;
-   border: 1px solid #ddd;
-   border-radius: 30rpx;
+.category-section {
    background-color: #fff;
-   transition: all 0.3s ease;
-}
-
-.gender-option.active {
-   border-color: #ff69b4;
-   background-color: #fff0f8;
-}
-
-.gender-option.active .gender-text {
-   color: #ff69b4;
-}
-
-.gender-text {
-   font-size: 28rpx;
-   color: #333;
-}
-
-/* 选择器样式 */
-.picker-container {
-   background-color: #f5f5f5;
-   border-radius: 8rpx;
-   overflow: hidden;
-}
-
-.native-picker {
-   width: 100%;
-}
-
-.picker-display {
    padding: 24rpx;
+   margin-top: 16rpx;
+}
+
+.category-grid {
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 24rpx;
+}
+
+.category-item {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 12rpx;
+}
+
+.category-icon {
+   width: 80rpx;
+   height: 80rpx;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 50%;
+}
+
+.category-name {
+   font-size: 24rpx;
+   color: #475569;
+}
+
+.section {
+   background-color: #fff;
+   margin-top: 16rpx;
+   padding: 24rpx;
+}
+
+.section-header {
    display: flex;
    justify-content: space-between;
    align-items: center;
-   font-size: 28rpx;
-   color: #333;
+   margin-bottom: 20rpx;
 }
 
-.picker-arrow {
-   color: #999;
+.section-title {
+   font-size: 32rpx;
+   font-weight: bold;
+   color: #1e293b;
+}
+
+.section-more {
+   display: flex;
+   align-items: center;
+   gap: 8rpx;
+}
+
+.more-text {
    font-size: 24rpx;
+   color: #3b82f6;
 }
 
-/* 底部按钮区域 */
-.popup-footer {
+.job-list {
+   display: flex;
+   flex-direction: column;
+   gap: 20rpx;
+}
+
+.job-card {
    display: flex;
    gap: 20rpx;
-   padding: 30rpx 0;
-   margin-top: auto;
-   border-top: 1rpx solid #f0f0f0;
+   padding: 20rpx;
+   background-color: #fafbfc;
+   border-radius: 16rpx;
+   border: 1rpx solid #e2e8f0;
 }
 
-.reset-btn {
+.job-image {
+   width: 160rpx;
+   height: 160rpx;
+   border-radius: 12rpx;
+}
+
+.job-info {
    flex: 1;
-   height: 90rpx;
-   line-height: 90rpx;
-   background-color: #f5f5f5;
-   color: #666;
-   font-size: 32rpx;
-   border: none;
-   border-radius: 45rpx;
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
 }
 
-.submit-btn {
+.job-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: flex-start;
+}
+
+.job-title {
+   font-size: 28rpx;
+   font-weight: 600;
+   color: #1e293b;
    flex: 1;
-   height: 90rpx;
-   line-height: 90rpx;
-   background-color: #ff69b4;
-   color: #fff;
-   font-size: 32rpx;
-   border: none;
-   border-radius: 45rpx;
-   box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.3);
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
 }
 
-/* 响应式设计 */
-@media screen and (max-width: 375px) {
-   .popup-title {
-      font-size: 34rpx;
+.job-salary {
+   font-size: 28rpx;
+   font-weight: bold;
+   color: #10b981;
+   margin-left: 12rpx;
+}
+
+.job-tags {
+   display: flex;
+   gap: 12rpx;
+}
+
+.job-tag {
+   padding: 6rpx 16rpx;
+   background-color: #eff6ff;
+   border-radius: 8rpx;
+   font-size: 22rpx;
+   color: #3b82f6;
+
+   &.online {
+      background-color: #eff6ff;
+      color: #3b82f6;
    }
 
-   .filter-label {
-      font-size: 26rpx;
+   &.offline {
+      background-color: #d1fae5;
+      color: #10b981;
    }
+}
 
-   .gender-text {
-      font-size: 26rpx;
-   }
+.job-desc {
+   font-size: 24rpx;
+   color: #94a3b8;
+   display: -webkit-box;
+   -webkit-line-clamp: 2;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
 
-   .picker-display {
-      font-size: 26rpx;
-   }
-
-   .reset-btn,
-   .submit-btn {
-      height: 84rpx;
-      line-height: 84rpx;
-      font-size: 30rpx;
-   }
+.bottom-space {
+   height: 120rpx;
 }
 </style>

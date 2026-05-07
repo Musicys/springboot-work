@@ -75,6 +75,13 @@ public class UrUsers implements Serializable {
     @TableField("user_rote")
     private Integer userRote;
 
+
+    /**
+     * 信誉分
+     */
+    @TableField("credit_code") // 告诉MyBatis-Plus这个属性对应数据库的 credit_code 字段
+    private Integer creditScore;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

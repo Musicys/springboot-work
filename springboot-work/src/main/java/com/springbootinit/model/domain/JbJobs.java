@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,10 +13,15 @@ import java.util.Date;
  * 兼职岗位表
  * @TableName jb_jobs
  */
-@TableName(value ="jb_jobs")
+@Data
+@TableName(value = "jb_jobs")
 public class JbJobs implements Serializable {
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
     /**
-     *
+     * 主键ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -26,32 +32,38 @@ public class JbJobs implements Serializable {
     private Long merchantId;
 
     /**
-     *
+     * 关联商家/店铺ID
+     */
+    @TableField("shop_id")
+    private Long shopId;
+
+    /**
+     * 岗位标题
      */
     private String title;
 
     /**
-     *
+     * 岗位描述
      */
     private String description;
 
     /**
-     *
+     * 最低薪资
      */
     private BigDecimal salaryMin;
 
     /**
-     *
+     * 最高薪资
      */
     private BigDecimal salaryMax;
 
     /**
-     *
+     * 分类ID
      */
     private Integer categoryId;
 
     /**
-     *
+     * 地区代码
      */
     private String regionCode;
 
@@ -61,305 +73,91 @@ public class JbJobs implements Serializable {
     private BigDecimal depositAmount;
 
     /**
-     * 1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架
+     * 状态: 1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架
      */
     private Integer status;
 
-
     /**
-     * 结算周期 '结算周期: 1-日结, 2-周结',
+     * 交易模式: 1:平台担保，2:允许线下
      */
-    private  Integer  settlement_cycle;
-    /**
-     * 1:平台担保，2:允许线下
-     */
+    @TableField("trade_mode")
     private Integer tradeMode;
 
     /**
-     *
+     * 发布时间
      */
+    @TableField("publish_time")
     private Date publishTime;
 
     /**
-     *
+     * 过期时间
      */
+    @TableField("expire_time")
     private Date expireTime;
 
     /**
-     *
+     * 创建时间
      */
+    @TableField("created_at")
     private Date createdAt;
 
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    /**
+     * 结算周期: 1-日结, 2-周结, 3-月结, 4-完工结
+     */
+    @TableField("settlement_cycle")
+    private Integer settlementCycle;
 
     /**
-     *
+     * 封面图数组(列表页展示用)
      */
-    public Long getId() {
-        return id;
-    }
+    @TableField("cover_images")
+    private String coverImages; // 数据库JSON类型，Java中用String接收
 
     /**
-     *
+     * 类型: 1-线上, 2-线下, 3-校园兼职, 4-校外兼职
      */
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @TableField("job_type")
+    private Integer jobType;
 
     /**
-     * 发布者 ID
+     * 地区名称
      */
-    public Long getMerchantId() {
-        return merchantId;
-    }
+    @TableField("region_name")
+    private String regionName;
 
     /**
-     * 发布者 ID
+     * 招聘人数
      */
-    public void setMerchantId(Long merchantId) {
-        this.merchantId = merchantId;
-    }
+    @TableField("recruit_num")
+    private Integer recruitNum;
 
     /**
-     *
+     * 简介(列表页展示用)
      */
-    public String getTitle() {
-        return title;
-    }
+    @TableField("brief_intro")
+    private String briefIntro;
 
     /**
-     *
+     * 工作时间类型: 1-周末, 2-周一至周五, 3-自定义时间范围
      */
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    @TableField("work_time_type")
+    private Integer workTimeType;
 
     /**
-     *
+     * 工作时间描述
      */
-    public String getDescription() {
-        return description;
-    }
+    @TableField("work_time_desc")
+    private String workTimeDesc;
 
     /**
-     *
+     * 岗位描述封面图
      */
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    @TableField("job_desc_cover")
+    private String jobDescCover;
 
     /**
-     *
+     * 岗位详细描述
      */
-    public BigDecimal getSalaryMin() {
-        return salaryMin;
-    }
-
-    /**
-     *
-     */
-    public void setSalaryMin(BigDecimal salaryMin) {
-        this.salaryMin = salaryMin;
-    }
-
-    /**
-     *
-     */
-    public BigDecimal getSalaryMax() {
-        return salaryMax;
-    }
-
-    /**
-     *
-     */
-    public void setSalaryMax(BigDecimal salaryMax) {
-        this.salaryMax = salaryMax;
-    }
-
-    /**
-     *
-     */
-    public Integer getCategoryId() {
-        return categoryId;
-    }
-
-    /**
-     *
-     */
-    public void setCategoryId(Integer categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    /**
-     *
-     */
-    public String getRegionCode() {
-        return regionCode;
-    }
-
-    /**
-     *
-     */
-    public void setRegionCode(String regionCode) {
-        this.regionCode = regionCode;
-    }
-
-    /**
-     * 押金金额 (商家担保)
-     */
-    public BigDecimal getDepositAmount() {
-        return depositAmount;
-    }
-
-    /**
-     * 押金金额 (商家担保)
-     */
-    public void setDepositAmount(BigDecimal depositAmount) {
-        this.depositAmount = depositAmount;
-    }
-
-    /**
-     * 1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架
-     */
-    public Integer getStatus() {
-        return status;
-    }
-
-    /**
-     * 1:发布中，2:进行中，3:已完成，4:已关闭，5:强制下架
-     */
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    /**
-     * 1:平台担保，2:允许线下
-     */
-    public Integer getTradeMode() {
-        return tradeMode;
-    }
-
-    /**
-     * 1:平台担保，2:允许线下
-     */
-    public void setTradeMode(Integer tradeMode) {
-        this.tradeMode = tradeMode;
-    }
-
-    /**
-     *
-     */
-    public Date getPublishTime() {
-        return publishTime;
-    }
-
-    /**
-     *
-     */
-    public void setPublishTime(Date publishTime) {
-        this.publishTime = publishTime;
-    }
-
-    /**
-     *
-     */
-    public Date getExpireTime() {
-        return expireTime;
-    }
-
-    /**
-     *
-     */
-    public void setExpireTime(Date expireTime) {
-        this.expireTime = expireTime;
-    }
-
-    /**
-     *
-     */
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    /**
-     *
-     */
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        JbJobs other = (JbJobs) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getMerchantId() == null ? other.getMerchantId() == null : this.getMerchantId().equals(other.getMerchantId()))
-            && (this.getTitle() == null ? other.getTitle() == null : this.getTitle().equals(other.getTitle()))
-            && (this.getDescription() == null ? other.getDescription() == null : this.getDescription().equals(other.getDescription()))
-            && (this.getSalaryMin() == null ? other.getSalaryMin() == null : this.getSalaryMin().equals(other.getSalaryMin()))
-            && (this.getSalaryMax() == null ? other.getSalaryMax() == null : this.getSalaryMax().equals(other.getSalaryMax()))
-            && (this.getCategoryId() == null ? other.getCategoryId() == null : this.getCategoryId().equals(other.getCategoryId()))
-            && (this.getRegionCode() == null ? other.getRegionCode() == null : this.getRegionCode().equals(other.getRegionCode()))
-            && (this.getDepositAmount() == null ? other.getDepositAmount() == null : this.getDepositAmount().equals(other.getDepositAmount()))
-            && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
-            && (this.getTradeMode() == null ? other.getTradeMode() == null : this.getTradeMode().equals(other.getTradeMode()))
-            && (this.getPublishTime() == null ? other.getPublishTime() == null : this.getPublishTime().equals(other.getPublishTime()))
-            && (this.getExpireTime() == null ? other.getExpireTime() == null : this.getExpireTime().equals(other.getExpireTime()))
-            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()));
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getMerchantId() == null) ? 0 : getMerchantId().hashCode());
-        result = prime * result + ((getTitle() == null) ? 0 : getTitle().hashCode());
-        result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
-        result = prime * result + ((getSalaryMin() == null) ? 0 : getSalaryMin().hashCode());
-        result = prime * result + ((getSalaryMax() == null) ? 0 : getSalaryMax().hashCode());
-        result = prime * result + ((getCategoryId() == null) ? 0 : getCategoryId().hashCode());
-        result = prime * result + ((getRegionCode() == null) ? 0 : getRegionCode().hashCode());
-        result = prime * result + ((getDepositAmount() == null) ? 0 : getDepositAmount().hashCode());
-        result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
-        result = prime * result + ((getTradeMode() == null) ? 0 : getTradeMode().hashCode());
-        result = prime * result + ((getPublishTime() == null) ? 0 : getPublishTime().hashCode());
-        result = prime * result + ((getExpireTime() == null) ? 0 : getExpireTime().hashCode());
-        result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", merchantId=").append(merchantId);
-        sb.append(", title=").append(title);
-        sb.append(", description=").append(description);
-        sb.append(", salaryMin=").append(salaryMin);
-        sb.append(", salaryMax=").append(salaryMax);
-        sb.append(", categoryId=").append(categoryId);
-        sb.append(", regionCode=").append(regionCode);
-        sb.append(", depositAmount=").append(depositAmount);
-        sb.append(", status=").append(status);
-        sb.append(", tradeMode=").append(tradeMode);
-        sb.append(", publishTime=").append(publishTime);
-        sb.append(", expireTime=").append(expireTime);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
-    }
+    @TableField("job_detail")
+    private String jobDetail;
 }

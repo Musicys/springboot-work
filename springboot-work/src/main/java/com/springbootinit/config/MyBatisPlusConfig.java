@@ -60,6 +60,8 @@ public class MyBatisPlusConfig {
         MybatisSqlSessionFactoryBean sqlSessionFactoryBean = new MybatisSqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
         sqlSessionFactoryBean.setGlobalConfig(globalConfig());
+        // 添加分页拦截器
+        sqlSessionFactoryBean.setPlugins(mybatisPlusInterceptor());
 
         // 设置 Mapper XML 路径
         sqlSessionFactoryBean.setMapperLocations(

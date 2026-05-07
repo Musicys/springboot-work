@@ -1,444 +1,747 @@
 <template>
    <view class="page">
-      <!-- 顶部用户信息卡片 -->
-      <view class="page-header">
-         <view class="user-info-container">
-            <!-- 左侧头像和用户信息 -->
-            <view class="user-main-info">
-               <view class="avatar-container" @click="showPopup = true">
-                  <!-- <image
-                     :src="
-                       
-                    
-                     mode="aspectFill" /> -->
-                  <view class="user-avatar">
-                     <wd-img
-                        :src="
-                           userInfo?.avatarUrl ||
-                           'https://ts1.tc.mm.bing.net/th/id/OIP-C.-r8TdWtF72EheUNjt_uKvwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3'
-                        "
-                        radius="50">
-                        <template #error>
-                           <wd-skeleton theme="avatar" />
-                        </template>
-                        <template #loading>
-                           <wd-skeleton theme="avatar" />
-                        </template>
-                     </wd-img>
-                  </view>
+      <!-- 顶部导航 -->
+      <view class="header">
+         <text class="header-title">南昌交通</text>
+         <view class="settings-btn" @click="goToSettings">
+            <text class="settings-icon">⚙️</text>
+         </view>
+      </view>
 
-                  <view class="camera-icon">
-                     <tn-icon name="camera-fill"></tn-icon>
-                  </view>
-               </view>
-               <view class="user-text-info">
-                  <view class="username">
-                     <tn-icon
-                        :name="
-                           userInfo?.gender === 1 ? 'sex-male' : 'sex-female'
-                        "
-                        size="26"
-                        :color="userInfo?.gender === 1 ? '#4caf50' : '#f44336'"
-                        bold /><text style="margin-left: 10rpx">
-                        {{ userInfo?.username || '用户名称' }}
-                     </text></view
-                  >
-                  <view class="user-email">
-                     账号：{{ userInfo?.email || 'user@example.com' }}</view
-                  >
-               </view>
-            </view>
-
-            <!-- 右侧查看按钮 -->
-            <view
-               class="view-button"
-               @click.stop="router.push({ name: 'usermessage' })">
-               <text>查看</text>
-               <wd-icon name="arrow-right" size="14" class="arrow-icon" />
+      <!-- 个人信息头部 -->
+      <view class="profile-header">
+         <view class="profile-info">
+            <image
+               :src="
+                  userStore.userInfo?.avatarUrl ||
+                  'https://picsum.photos/seed/useravatar/100/100'
+               "
+               class="avatar"
+               mode="aspectFill"></image>
+            <view class="user-details">
+               <text class="username">{{
+                  userStore.userInfo?.realName ||
+                  userStore.userInfo?.username ||
+                  '未登录'
+               }}</text>
+               <text class="user-id"
+                  >ID: {{ userStore.userInfo?.userId || '--' }}</text
+               >
+               <text class="user-gender">{{ genderText }}</text>
             </view>
          </view>
 
-         <!-- 用户数据统计 -->
-         <view class="stats-container">
-            <view
-               class="stat-item"
-               @click.stop="router.push({ name: 'focuse' })">
-               <view class="stat-number">{{
-                  statusnum.myFocus == 0 ? '0' : statusnum.myFocus
-               }}</view>
-               <view class="stat-label">我关注的</view>
+         <!-- 信誉分模块 -->
+         <view class="credit-section">
+            <view class="credit-header">
+               <view class="credit-label">
+                  <text class="credit-icon">⭐</text>
+                  <text class="credit-text">信誉分</text>
+               </view>
+               <view class="credit-score">
+                  <text class="score-num">{{
+                     userStore.userInfo?.creditScore || 0
+                  }}</text>
+                  <text class="score-total">/ 100</text>
+               </view>
             </view>
-            <view
-               class="stat-item"
-               @click.stop="router.push({ name: 'reply' })">
-               <view class="stat-number">{{
-                  statusnum.myReply == 0 ? '0' : statusnum.myReply
-               }}</view>
-               <view class="stat-label">回复我的</view>
+            <view class="score-bar">
+               <view
+                  class="score-progress"
+                  :style="{
+                     width: (userStore.userInfo?.creditScore || 0) + '%'
+                  }"></view>
             </view>
-            <view
-               class="stat-item"
-               @click.stop="router.push({ name: 'acceptable' })">
-               <view class="stat-number">{{
-                  statusnum.myLike == 0 ? '0' : statusnum.myLike
-               }}</view>
-               <view class="stat-label">认同我的</view>
+            <text class="credit-tip">信誉良好，可优先应聘高薪兼职</text>
+         </view>
+      </view>
+
+      <!-- 提现金额模块 -->
+      <view class="balance-card">
+         <view class="balance-left">
+            <text class="balance-label">可提现金额</text>
+            <text class="balance-amount"
+               >¥{{ (userStore.userInfo?.wlWallets?.balance || 0) / 100 }}</text
+            >
+         </view>
+         <button class="withdraw-btn" @click="handleWithdraw">立即提现</button>
+         <view class="balance-links">
+            <view class="link-item" @click="goToWithdrawHistory">
+               <text class="link-icon">📜</text>
+               <text class="link-text">提现记录</text>
+            </view>
+            <view class="link-item" @click="goToEarnings">
+               <text class="link-icon">👛</text>
+               <text class="link-text">收益明细</text>
             </view>
          </view>
       </view>
 
-      <!-- 系统设置和客服帮助 -->
-      <view class="section-container">
-         <view class="card-section">
-            <view class="cell-border">
-               <wd-cell
-                  title="用户信息"
-                  icon="user"
-                  :show-arrow="true"
-                  is-link
-                  class="cell-item" />
+      <!-- 功能菜单 -->
+      <scroll-view scroll-y class="menu-scroll">
+         <!-- 简历模块 -->
+         <view class="menu-card">
+            <view class="menu-item" @click="goToResume">
+               <view class="menu-icon-wrap blue">
+                  <text class="menu-icon">📄</text>
+               </view>
+               <view class="menu-content">
+                  <text class="menu-title">我的简历</text>
+                  <text class="menu-desc"
+                     >已完善{{ resumeProgress }}%，完善度越高越易应聘</text
+                  >
+               </view>
+               <text class="menu-arrow">›</text>
             </view>
 
-            <view class="cell-border">
-               <wd-cell
-                  title="客服帮助"
-                  icon="help-circle"
-                  :show-arrow="true"
-                  class="cell-item"
-                  is-link />
+            <!-- 简历快捷操作 -->
+            <view class="resume-actions">
+               <view class="action-item" @click="goToEditResume">
+                  <text class="action-icon">✏️</text>
+                  <text class="action-text">编辑简历</text>
+               </view>
+               <view class="action-item" @click="goToUploadResume">
+                  <text class="action-icon">⬆️</text>
+                  <text class="action-text">上传附件</text>
+               </view>
+               <view class="action-item" @click="goToShareResume">
+                  <text class="action-icon">🔗</text>
+                  <text class="action-text">简历分享</text>
+               </view>
             </view>
-
-            <view class="cell-border">
-               <wd-cell
-                  title="关于我们"
-                  icon="info-circle"
-                  is-link
-                  :show-arrow="true"
-                  class="cell-item" />
-            </view>
-            <view class="cell-border" @click="router.push({ name: 'userlst' })">
-               <wd-cell
-                  title="切换用户"
-                  icon="history"
-                  is-link
-                  :show-arrow="true"
-                  class="cell-item" />
-            </view>
-
-            <view class="cell-border" @click="handleLogout">
-               <wd-cell
-                  title="退出登录"
-                  icon="logout"
-                  :show-arrow="true"
-                  is-link
-                  class="cell-item" />
-            </view>
-
-            <wd-cell
-               title="隐私政策"
-               icon="laptop"
-               :show-arrow="true"
-               class="cell-item"
-               is-link />
          </view>
-      </view>
-      <tn-update-user-info-popup
-         confirm-bg-color="#ffe088"
-         confirm-text-color="#000"
-         v-model:show="showPopup"
-         v-model:nickname="UserEiditFrom.username"
-         v-model:avatar="UserEiditFrom.avatarUrl"
-         @choose-avatar="avatarChooseHandle"
-         @confirm="exiditUserInfo" />
+
+         <!-- 核心功能区 -->
+         <view class="menu-card">
+            <view class="menu-item" @click="goToJobHistory">
+               <view class="menu-icon-wrap orange">
+                  <text class="menu-icon">⏰</text>
+               </view>
+               <text class="menu-title">兼职记录</text>
+               <text class="menu-arrow">›</text>
+            </view>
+            <view class="menu-item" @click="goToFeedback">
+               <view class="menu-icon-wrap red">
+                  <text class="menu-icon">🚩</text>
+               </view>
+               <text class="menu-title">投诉与反馈</text>
+               <text class="menu-arrow">›</text>
+            </view>
+         </view>
+
+         <!-- 系统设置区 -->
+         <view class="menu-card">
+            <view class="menu-item" @click="goToAccountSecurity">
+               <view class="menu-icon-wrap gray">
+                  <text class="menu-icon">🛡️</text>
+               </view>
+               <text class="menu-title">账号安全</text>
+               <text class="menu-arrow">›</text>
+            </view>
+            <view class="menu-item" @click="goToNotificationSettings">
+               <view class="menu-icon-wrap gray">
+                  <text class="menu-icon">🔔</text>
+               </view>
+               <text class="menu-title">消息设置</text>
+               <text class="menu-arrow">›</text>
+            </view>
+            <view class="menu-item" @click="goToHelpCenter">
+               <view class="menu-icon-wrap gray">
+                  <text class="menu-icon">❓</text>
+               </view>
+               <text class="menu-title">帮助中心</text>
+               <text class="menu-arrow">›</text>
+            </view>
+         </view>
+
+         <!-- 退出登录 -->
+         <view class="logout-section">
+            <button class="logout-btn" @click="handleLogout">
+               <text class="logout-icon">🚪</text>
+               <text class="logout-text">退出登录</text>
+            </button>
+         </view>
+      </scroll-view>
    </view>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'uni-mini-router';
-import { useStore } from '@/store/user';
-import { sockeStore } from '@/store/socke';
-import { UserEdit, UserIsLogin, UserLogout, UserGetInfo } from '@/api/user';
-import { YoUViewStatistics } from '@/api/system';
-import { onShow } from '@dcloudio/uni-app';
-import TnUpdateUserInfoPopup from 'tnuiv3p-tn-update-user-info-popup/index.vue';
-import { reactive, watch } from 'vue';
-import { updateOssFile } from '@/api/file';
-const router = useRouter();
-const userStore = useStore();
-const { SocketTask } = sockeStore();
-const { getEiditUser, setUserInfo, setTokens } = userStore;
-//抽屉
-const showPopup = ref<boolean>(false);
-const userInfo = ref({ ...useStore.userInfo });
-const UserEiditFrom = reactive({
-   avatarUrl: '',
-   username: ''
-});
-const statusnum = ref({
-   myFocus: 0,
-   myReply: 0,
-   myLike: 0
+import { ref, computed, onMounted } from 'vue';
+import { useUserStore } from '@/store/user';
+import * as userApi from '@/api/user';
+
+// 创建用户store
+const userStore = useUserStore();
+
+// 简历完善度
+const resumeProgress = ref(80);
+
+// 加载状态
+const loading = ref(false);
+
+// 性别显示文本
+const genderText = computed(() => {
+   const gender = userStore.userInfo?.gender;
+   const genderMap: Record<number, string> = {
+      0: '保密',
+      1: '男',
+      2: '女'
+   };
+   return genderMap[gender] || '保密';
 });
 
-watch(
-   () => userStore.userInfo,
-   (newVal, oldVal) => {
-      userInfo.value = newVal;
-      UserEiditFrom.avatarUrl = newVal.avatarUrl || '';
-      UserEiditFrom.username = newVal.username || '';
-   },
-   {
-      immediate: true
-   }
-);
-
-// 头像选择事件
-const avatarChooseHandle = async (url: string) => {
-   // 换成自己的上传接口
-   const res = await updateOssFile(url);
-
-   const { code, data } = JSON.parse(res.data);
-   if (code == 0) {
-      UserEiditFrom.avatarUrl = data;
-   }
-};
-
-const exiditUserInfo = async () => {
-   let res = await UserEdit(getEiditUser(UserEiditFrom));
-   if (res.code == 0) {
-      // 重新获取用户信息存储
-      let res = await UserGetInfo();
-      if (res.code == 0) {
-         setUserInfo(res.data);
-         setTokens(res.data);
+// 获取用户信息
+const fetchUserInfo = async () => {
+   loading.value = true;
+   try {
+      const res = await userApi.getLoginStatus();
+      if (res.code === 0 && res.data) {
+         // 更新pina store
+         userStore.setUserInfo({
+            userId: Number(res.data.userId) || 0,
+            username: res.data.username || '',
+            token: res.data.token || null,
+            userType: res.data.userType || 1,
+            avatarUrl: res.data.avatarUrl || '',
+            userRote: res.data.userRote || null,
+            studentId: res.data.studentId || '',
+            realName: res.data.realName || '',
+            age: res.data.age || 0,
+            gender: res.data.gender || 0,
+            phone: res.data.phone || '',
+            profession: res.data.profession || '',
+            introduction: res.data.introduction || '',
+            creditScore: res.data.creditScore || 0,
+            tagName: res.data.tagName || '',
+            wlWallets: res.data.wlWallets || null
+         });
       }
+   } catch (error) {
+      console.error('获取用户信息失败:', error);
+   } finally {
+      loading.value = false;
    }
 };
 
-// 退出登录处理
+// 页面加载时获取用户信息
+onMounted(() => {
+   fetchUserInfo();
+});
+
+// 跳转设置
+const goToSettings = () => {
+   uni.showToast({
+      title: '设置功能开发中',
+      icon: 'none'
+   });
+};
+
+// 提现
+const handleWithdraw = () => {
+   uni.showToast({
+      title: '提现申请已提交，预计1-3个工作日到账',
+      icon: 'none',
+      duration: 2000
+   });
+};
+
+// 提现记录
+const goToWithdrawHistory = () => {
+   uni.showToast({
+      title: '提现记录功能开发中',
+      icon: 'none'
+   });
+};
+
+// 收益明细
+const goToEarnings = () => {
+   uni.showToast({
+      title: '收益明细功能开发中',
+      icon: 'none'
+   });
+};
+
+// 我的简历
+const goToResume = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/mine/uploadresume/index'
+   });
+};
+
+// 编辑简历
+const goToEditResume = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/mine/uploadresume/index'
+   });
+};
+
+// 上传附件
+const goToUploadResume = () => {
+   uni.showToast({
+      title: '上传附件功能开发中',
+      icon: 'none'
+   });
+};
+
+// 简历分享
+const goToShareResume = () => {
+   uni.showToast({
+      title: '简历分享功能开发中',
+      icon: 'none'
+   });
+};
+
+// 兼职记录
+const goToJobHistory = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/mine/orderlst/index'
+   });
+};
+
+// 投诉与反馈
+const goToFeedback = () => {
+   uni.navigateTo({
+      url: '/pages/tabar/mine/feedback/index'
+   });
+};
+
+// 账号安全
+const goToAccountSecurity = () => {
+   uni.showToast({
+      title: '账号安全功能开发中',
+      icon: 'none'
+   });
+};
+
+// 消息设置
+const goToNotificationSettings = () => {
+   uni.showToast({
+      title: '消息设置功能开发中',
+      icon: 'none'
+   });
+};
+
+// 帮助中心
+const goToHelpCenter = () => {
+   uni.showToast({
+      title: '帮助中心功能开发中',
+      icon: 'none'
+   });
+};
+
+// 退出登录
 const handleLogout = () => {
-   // 显示确认弹窗
    uni.showModal({
       title: '确认退出',
       content: '确定要退出登录吗？',
       success: res => {
          if (res.confirm) {
-            //端口 websoke
-
-            UserLogout().then(res => {
-               if (res.code == 0) {
-                  userStore.setUserInfo({});
-                  userStore.ColseTokenDefale();
-                  SocketTask.close();
-                  uni.showToast({
-                     title: '退出成功',
-                     icon: 'none'
-                  });
-                  router.replaceAll({ name: 'login' });
-               }
+            uni.showLoading({
+               title: '退出中...',
+               mask: true
             });
-            return;
+            setTimeout(() => {
+               uni.hideLoading();
+               // 清除用户信息
+               userStore.clearUserInfo();
+               uni.redirectTo({
+                  url: '/pages/login/index'
+               });
+            }, 1000);
          }
       }
    });
 };
 
-onShow(async () => {
-   let res = await YoUViewStatistics();
-   if (res.code === 0) {
-      statusnum.value = res.data;
-   }
-});
+// 跳转首页
+const goToHome = () => {
+   uni.switchTab({
+      url: '/pages/tabar/index'
+   });
+};
 </script>
 
 <style lang="scss" scoped>
-// 页面基础样式
 .page {
-   overflow: hidden;
-   padding-top: var(--status-bar-height); // 状态栏
-   padding-bottom: env(safe-area-inset-bottom); // 底部安全区
+   min-height: 100vh;
+   background-color: #f8fafc;
+   padding-bottom: 180rpx;
 }
 
-// 页面头部样式
-.page-header {
-   background: var(--quyou-nav-bg-color);
-   padding: 28rpx;
-   position: relative;
-   padding-bottom: 100rpx;
-   border-radius: 0 0 30rpx 30rpx;
-}
-
-// 用户信息区域
-.user-info-container {
+.header {
+   position: sticky;
+   top: 0;
+   z-index: 100;
+   background-color: #fff;
+   padding: 24rpx 32rpx;
    display: flex;
-
+   align-items: center;
    justify-content: space-between;
-   position: relative;
-   z-index: 10;
+   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
-.user-main-info {
+.header-title {
+   font-size: 34rpx;
+   font-weight: 600;
+   color: #1e293b;
+}
+
+.settings-btn {
+   width: 72rpx;
+   height: 72rpx;
    display: flex;
    align-items: center;
-}
-
-.avatar-container {
-   position: relative;
-}
-
-.user-avatar {
-   width: 150rpx;
-   height: 150rpx;
-   border: 16rpx solid rgba(255, 255, 255, 0.3);
-   border-radius: 50%;
-   object-fit: cover;
-   position: relative;
-}
-
-.camera-icon {
-   position: absolute;
-   bottom: 10rpx;
-   right: 10rpx;
-   font-size: 18rpx;
-   width: 30rpx;
-   height: 30rpx;
-   border: 5rpx solid white;
-   background: rgba(0, 0, 0, 0.5);
-   display: flex;
    justify-content: center;
-   border-radius: 50%;
-   align-items: center;
-   color: white;
 }
 
-.user-text-info {
-   margin-left: 25rpx;
+.settings-icon {
+   font-size: 36rpx;
+}
+
+.profile-header {
+   background-color: #3b82f6;
+   padding: 48rpx 32rpx;
+}
+
+.profile-info {
+   display: flex;
+   align-items: center;
+   gap: 24rpx;
+   margin-bottom: 32rpx;
+}
+
+.avatar {
+   width: 128rpx;
+   height: 128rpx;
+   border-radius: 50%;
+   border: 4rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.user-details {
    display: flex;
    flex-direction: column;
-
-   font-size: 22rpx;
-   justify-content: center;
-   font-weight: bold;
-   height: 100%;
+   gap: 8rpx;
 }
 
 .username {
+   font-size: 36rpx;
+   font-weight: 600;
+   color: #fff;
+}
+
+.user-id {
+   font-size: 26rpx;
+   color: rgba(255, 255, 255, 0.8);
+}
+
+.user-gender {
    font-size: 24rpx;
-   margin-bottom: 15rpx;
-   color: #303030;
-}
-
-.user-email {
-   font-size: 22rpx;
+   color: rgba(255, 255, 255, 0.6);
    margin-top: 4rpx;
-   color: #6f6c65;
 }
 
-// 查看按钮
-.view-button {
+.credit-section {
+   background-color: rgba(255, 255, 255, 0.1);
+   border-radius: 16rpx;
+   padding: 24rpx;
+}
+
+.credit-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 16rpx;
+}
+
+.credit-label {
    display: flex;
    align-items: center;
-   color: #b8b1b0;
+   gap: 12rpx;
 }
 
-.arrow-icon {
+.credit-icon {
+   font-size: 28rpx;
+}
+
+.credit-text {
+   font-size: 28rpx;
+   color: rgba(255, 255, 255, 0.9);
+}
+
+.credit-score {
+   display: flex;
+   align-items: baseline;
+}
+
+.score-num {
+   font-size: 40rpx;
+   font-weight: 700;
+   color: #fff;
+}
+
+.score-total {
+   font-size: 24rpx;
+   color: rgba(255, 255, 255, 0.7);
    margin-left: 4rpx;
 }
 
-// 统计数据区域
-.stats-container {
-   position: absolute;
-   bottom: -50rpx;
-   left: 50%;
-   width: 90%;
-   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-   transform: translateX(-50%);
-   display: flex;
-   justify-content: space-between;
-   margin-top: 20rpx;
-   background: #fff;
-   color: black;
-   padding: 30rpx 80rpx;
-
-   border-radius: 15rpx;
-}
-
-.stat-item {
-   text-align: center;
-}
-
-.stat-number {
-   font-size: 28rpx;
-   font-weight: bold;
-}
-
-.stat-label {
-   font-size: 22rpx;
-   margin-top: 4rpx;
-}
-
-// 内容区块容器
-.section-container {
-   margin-top: 100rpx;
-   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-   padding: 0 30rpx;
-}
-
-.card-section {
-   background: white;
-   border-radius: 16rpx;
-   margin-top: 8rpx;
+.score-bar {
+   height: 12rpx;
+   background-color: rgba(255, 255, 255, 0.2);
+   border-radius: 6rpx;
    overflow: hidden;
-   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-   transition: all 0.3s ease;
+   margin-bottom: 12rpx;
 }
 
-.cell-border {
-   border-bottom: 4rpx solid #f5f5f5;
+.score-progress {
+   height: 100%;
+   background-color: #fbbf24;
+   border-radius: 6rpx;
+   transition: width 0.5s ease;
 }
 
-// 单元格样式
-.cell-item::after {
-   border: none !important;
+.credit-tip {
+   font-size: 22rpx;
+   color: rgba(255, 255, 255, 0.7);
 }
 
-.cell-item .wd-cell__title {
-   font-size: 15px;
+.balance-card {
+   background-color: #fff;
+   margin: -24rpx 24rpx 24rpx;
+   border-radius: 20rpx;
+   padding: 32rpx;
+   box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.1);
 }
 
-.cell-item .wd-cell__icon {
-   color: #666;
+.balance-left {
+   display: flex;
+   flex-direction: column;
+   gap: 8rpx;
+   margin-bottom: 20rpx;
 }
 
-// 角标样式
-.badge {
-   font-size: 12rpx;
-   background-color: #fef2f2;
-   color: #ef4444;
-   padding: 2rpx 6rpx;
-   border-radius: 10rpx;
+.balance-label {
+   font-size: 26rpx;
+   color: #64748b;
 }
 
-.activity-badge {
-   font-size: 12rpx;
+.balance-amount {
+   font-size: 48rpx;
+   font-weight: 700;
+   color: #1e293b;
+}
+
+.withdraw-btn {
+   width: 100%;
+   height: 80rpx;
+   background-color: #3b82f6;
+   border: none;
+   border-radius: 12rpx;
+   font-size: 28rpx;
+   color: #fff;
+   font-weight: 500;
+   margin-bottom: 20rpx;
+
+   &:active {
+      opacity: 0.9;
+   }
+}
+
+.balance-links {
+   display: flex;
+   justify-content: center;
+   gap: 64rpx;
+}
+
+.link-item {
    display: flex;
    align-items: center;
+   gap: 8rpx;
 }
 
-.activity-dot {
+.link-icon {
+   font-size: 24rpx;
+}
+
+.link-text {
+   font-size: 26rpx;
+   color: #3b82f6;
+}
+
+.menu-scroll {
+   height: calc(100vh - 520rpx);
+}
+
+.menu-card {
+   background-color: #fff;
+   margin: 0 24rpx 24rpx;
+   border-radius: 16rpx;
+   overflow: hidden;
+}
+
+.menu-item {
+   display: flex;
+   align-items: center;
+   padding: 28rpx 24rpx;
+   border-bottom: 1rpx solid #f1f5f9;
+
+   &:last-child {
+      border-bottom: none;
+   }
+
+   &:active {
+      background-color: #f8fafc;
+   }
+}
+
+.menu-icon-wrap {
+   width: 80rpx;
+   height: 80rpx;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   margin-right: 20rpx;
+
+   &.blue {
+      background-color: #eff6ff;
+   }
+
+   &.orange {
+      background-color: #fff7ed;
+   }
+
+   &.red {
+      background-color: #fef2f2;
+   }
+
+   &.gray {
+      background-color: #f8fafc;
+   }
+}
+
+.menu-icon {
+   font-size: 36rpx;
+}
+
+.menu-content {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   gap: 6rpx;
+}
+
+.menu-title {
+   font-size: 28rpx;
+   font-weight: 500;
+   color: #1e293b;
+}
+
+.menu-desc {
+   font-size: 22rpx;
+   color: #94a3b8;
+}
+
+.menu-arrow {
+   font-size: 32rpx;
+   color: #94a3b8;
+}
+
+.resume-actions {
+   display: flex;
+   justify-content: space-around;
+   padding: 24rpx;
+   border-top: 1rpx solid #f1f5f9;
+}
+
+.action-item {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 8rpx;
+
+   &:active {
+      opacity: 0.7;
+   }
+}
+
+.action-icon {
+   font-size: 32rpx;
+}
+
+.action-text {
+   font-size: 24rpx;
+   color: #64748b;
+}
+
+.logout-section {
+   padding: 32rpx 24rpx;
+}
+
+.logout-btn {
+   width: 100%;
+   height: 88rpx;
+   background-color: #fff;
+   border: 2rpx solid #ef4444;
+   border-radius: 12rpx;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 12rpx;
+
+   &:active {
+      background-color: #fef2f2;
+   }
+}
+
+.logout-icon {
+   font-size: 28rpx;
+}
+
+.logout-text {
+   font-size: 28rpx;
    color: #ef4444;
+   font-weight: 500;
 }
 
-.activity-arrow {
-   margin-left: 8rpx;
+.tab-bar {
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   background-color: #fff;
+   padding: 16rpx 0 40rpx;
+   display: flex;
+   justify-content: space-around;
+   border-top: 1rpx solid #e2e8f0;
+   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
 }
-:deep() {
-   .tn-popup.is-visible .tn-popup__content {
-      bottom: 100rpx;
+
+.tab-item {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 8rpx;
+   padding: 8rpx 40rpx;
+
+   &.active {
+      .tab-text {
+         color: #3b82f6;
+         font-weight: 500;
+      }
    }
-   .tn-update-user-info-popup__avatar--image {
-      width: 100% !important;
-      height: 100% !important;
+
+   &:active {
+      opacity: 0.7;
    }
+}
+
+.tab-icon {
+   font-size: 40rpx;
+}
+
+.tab-text {
+   font-size: 22rpx;
+   color: #94a3b8;
 }
 </style>

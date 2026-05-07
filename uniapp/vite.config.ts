@@ -61,11 +61,11 @@ export default defineConfig({
       port: 5173,
       open: true, // 可选：启动时自动打开浏览器
       proxy: {
-         '/api': {
-            target: 'http://localhost:8080/',
-            changeOrigin: true,
-            rewrite: path => path.replace(/^\/api/, '')
-         }
+         //    '/api': {
+         //       target: 'http://localhost:8101/api/',
+         //       changeOrigin: true,
+         //       rewrite: path => path.replace(/^\/api/, '')
+         //    }
       }
    },
    // 启用 terser 压缩（替代默认的 esbuild）

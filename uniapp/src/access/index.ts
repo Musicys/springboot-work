@@ -1,30 +1,52 @@
 import router from '@/router';
-import { UserIsLogin } from '@/api/user';
-import { useStore } from '@/store/user';
-import router from '@/router';
-router.beforeEach((to, from, next) => {
-   // next入参 false 以取消导航
+import { useUserStore } from '@/store/user';
+import { getLoginStatus } from '@/api/user/index';
 
+const whiteList = [
+   '/pages/login/index',
+   '/pages/register/index',
+   '/pages/init/index'
+];
+
+router.beforeEach((to, from, next) => {
    next(true);
 });
+
 router.afterEach((to, from) => {
-   if (
-      to.fullPath == '/pages/login/index' ||
-      to.fullPath == '/pages/tabar/mine/userlst/index' ||
-      to.fullPath == '/'
-   ) {
+   const userStore = useUserStore();
+
+   if (whiteList.includes(to.path)) {
       return;
    }
-   UserIsLogin().then(res => {
-      if (res.code == 0) {
-         //
-      } else {
-         router.replaceAll({
-            path: '/pages/login/index'
-         });
-      }
+
+   if (userStore.isLoggedIn && userStore.userInfo) {
+      return;
+   }
+   console.log('蓝降价');
+   uni.showLoading({
+      title: '加载中...',
+      mask: true
    });
 
-   // console.log(to);
-   // console.log(from);
+   getLoginStatus()
+      .then((res: any) => {
+         console.log(res);
+
+         uni.hideLoading();
+
+         if (res.code === 0 && res.data) {
+            userStore.setUserInfo(res.data);
+            return;
+         } else {
+            uni.reLaunch({
+               url: '/pages/login/index'
+            });
+         }
+      })
+      .catch(() => {
+         uni.hideLoading();
+         uni.reLaunch({
+            url: '/pages/login/index'
+         });
+      });
 });

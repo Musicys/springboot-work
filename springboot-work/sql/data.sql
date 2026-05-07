@@ -243,15 +243,24 @@ create index idx_merchant_status
 create index idx_user_status
     on od_orders (user_id, order_status);
 
-create table ur_intentions
-(
-    id         bigint auto_increment
-        primary key,
-    user_id    bigint                             not null,
-    tag_name   varchar(50)                        not null comment '如：周末可做，接受夜班',
-    created_at datetime default CURRENT_TIMESTAMP null
-)
-    comment '求职意向表';
+CREATE TABLE ur_intentions (
+                               id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+                               user_id       BIGINT                             NOT NULL COMMENT '用户ID',
+
+    -- 新增的个人信息字段 --
+                               student_id    VARCHAR(50)                        NOT NULL COMMENT '学号',
+                               real_name     VARCHAR(50)                        NOT NULL COMMENT '真实姓名',
+                               age           TINYINT UNSIGNED                   NOT NULL DEFAULT 0 COMMENT '年龄',
+                               gender        TINYINT                            NOT NULL DEFAULT 0 COMMENT '性别（如：0-未知，1-男，2-女）',
+                               phone         VARCHAR(20)                        NOT NULL COMMENT '电话',
+                               profession    VARCHAR(100)                       NOT NULL DEFAULT '' COMMENT '职业',
+                               introduction  TEXT                               NULL COMMENT '个人简介',
+
+    -- 原有的意向字段 --
+                               tag_name      VARCHAR(50)                        NOT NULL COMMENT '求职意向标签，如：周末可做，接受夜班',
+
+                               created_at    DATETIME DEFAULT CURRENT_TIMESTAMP NULL COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='求职意向表';
 
 create index idx_user_tag
     on ur_intentions (user_id, tag_name);
@@ -310,6 +319,9 @@ create table ur_users
 )
     comment '用户基础表';
 
+
+
+
 create index idx_region
     on ur_users (region_code);
 
@@ -347,7 +359,7 @@ create table wl_transaction_logs
     description       varchar(255)                       null,
     created_at        datetime default CURRENT_TIMESTAMP null
 )
-    comment '交易流水表'
+    comment '交易流水表';
 
 create index idx_user_time
     on wl_transaction_logs (user_id, created_at);
