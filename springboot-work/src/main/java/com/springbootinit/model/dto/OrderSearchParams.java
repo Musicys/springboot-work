@@ -21,7 +21,7 @@ public class OrderSearchParams {
     @ApiModelProperty(value = "兼职ID")
     private Long jobId;
 
-    @ApiModelProperty(value = "订单状态：1:待入职，2:进行中(押金冻结), 3:完成待结算，4:纠纷中，5:已结款，6:用户爽约，7:异常终止")
+    @ApiModelProperty(value = "订单状态：1:待入职，2:进行中(押金冻结), 3:已完成，4:纠纷中，5:已结款，6:用户爽约，7:异常终止")
     private Integer orderStatus;
 
     @ApiModelProperty(value = "交易模式：1:平台担保，2:线下交易")

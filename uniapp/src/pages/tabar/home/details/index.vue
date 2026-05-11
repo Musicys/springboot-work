@@ -242,6 +242,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import * as apis from '@/api/job';
+import { useUserStore } from '@/store/user';
+
+const userStore = useUserStore();
 
 const jobDetail = ref<any>(null);
 const bannerImages = ref<string[]>([]);
@@ -259,7 +262,6 @@ const isFollowed = ref(false);
 // 获取兼职详情
 const fetchJobDetail = async () => {
    try {
-      // 获取URL参数中的兼职ID
       const pages = getCurrentPages();
       const currentPage = pages[pages.length - 1];
       const options = (currentPage as any).$page?.options || {};
@@ -269,7 +271,6 @@ const fetchJobDetail = async () => {
       if (res.code === 0 && res.data) {
          jobDetail.value = res.data;
 
-         // 处理封面图片
          if (res.data.coverImages && Array.isArray(res.data.coverImages)) {
             bannerImages.value = res.data.coverImages;
          } else {
@@ -278,7 +279,6 @@ const fetchJobDetail = async () => {
             ];
          }
 
-         // 处理岗位描述图片
          if (res.data.jobDescCover) {
             jobDescImages.value = [res.data.jobDescCover];
          } else {
@@ -289,7 +289,6 @@ const fetchJobDetail = async () => {
             ];
          }
 
-         // 处理企业信息
          if (res.data.merchantInfo) {
             companyInfo.value = {
                name: res.data.merchantInfo.merchantName || '未知企业',
@@ -298,7 +297,6 @@ const fetchJobDetail = async () => {
                   'https://picsum.photos/seed/companylogo/100/100',
                address: res.data.merchantInfo.address || '地址未知'
             };
-            // 企业认证图片
             companyCertImages.value = [
                'https://picsum.photos/seed/company1/100/100',
                'https://picsum.photos/seed/company2/100/100'
@@ -314,7 +312,6 @@ onMounted(() => {
    fetchJobDetail();
 });
 
-// 格式化日期
 const formatDate = (dateStr: string) => {
    if (!dateStr) return '未知时间';
    return dateStr.replace('T', ' ').substring(0, 16);
@@ -354,16 +351,53 @@ const goToConsult = () => {
    });
 };
 
-const handleApply = () => {
+const handleApply = async () => {
+   const pages = getCurrentPages();
+   const currentPage = pages[pages.length - 1];
+   const options = (currentPage as any).$page?.options || {};
+   const jobId = options.id;
+
+   if (!jobId) {
+      uni.showToast({
+         title: '获取兼职信息失败',
+         icon: 'none'
+      });
+      return;
+   }
+
+   const currentUserId = userStore.userInfo?.userId;
+   if (!currentUserId) {
+      uni.showToast({
+         title: '请先登录',
+         icon: 'none'
+      });
+      return;
+   }
+
    uni.showModal({
       title: '确认应聘',
       content: '确定要应聘该兼职吗？企业将在1个工作日内联系你。',
-      success: res => {
+      success: async res => {
          if (res.confirm) {
-            uni.showToast({
-               title: '应聘成功！',
-               icon: 'success'
-            });
+            try {
+               const result = await apis.applyJob({
+                  jobId: Number(jobId),
+                  userId: currentUserId
+               });
+               if (result.code === 0) {
+                  uni.showToast({
+                     title: '应聘成功！',
+                     icon: 'success'
+                  });
+               } else {
+                  uni.showToast({
+                     title: result.message || '应聘失败',
+                     icon: 'none'
+                  });
+               }
+            } catch (error) {
+               console.error('应聘失败:', error);
+            }
          }
       }
    });
@@ -421,18 +455,19 @@ const handleApply = () => {
 }
 
 .content-scroll {
-   height: calc(100vh - 120rpx);
+   padding: 0 24rpx;
 }
 
 .banner-section {
    position: relative;
-   width: 100%;
-   height: 480rpx;
+   margin-top: 24rpx;
 }
 
 .banner-swiper {
    width: 100%;
-   height: 100%;
+   height: 360rpx;
+   border-radius: 16rpx;
+   overflow: hidden;
 }
 
 .banner-img {
@@ -449,60 +484,59 @@ const handleApply = () => {
 }
 
 .banner-tag {
-   font-size: 22rpx;
    padding: 8rpx 16rpx;
    border-radius: 8rpx;
+   font-size: 22rpx;
+   font-weight: 500;
+}
+
+.banner-tag.urgent {
+   background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
    color: #fff;
+}
 
-   &.urgent {
-      background-color: #ef4444;
-   }
-
-   &.high-salary {
-      background-color: #10b981;
-   }
+.banner-tag.high-salary {
+   background: linear-gradient(135deg, #ffa502, #ff7f00);
+   color: #fff;
 }
 
 .collect-btn {
    position: absolute;
    top: 24rpx;
    right: 24rpx;
-   width: 80rpx;
-   height: 80rpx;
-   background-color: rgba(255, 255, 255, 0.8);
+   width: 72rpx;
+   height: 72rpx;
+   background: rgba(255, 255, 255, 0.9);
    border-radius: 50%;
    display: flex;
    align-items: center;
    justify-content: center;
-
-   &:active {
-      opacity: 0.8;
-   }
+   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .collect-icon {
-   font-size: 40rpx;
+   font-size: 36rpx;
 }
 
 .info-card {
-   background-color: #fff;
+   background: #fff;
+   border-radius: 16rpx;
    padding: 32rpx;
-   margin-bottom: 24rpx;
+   margin-top: 24rpx;
 }
 
 .job-title {
-   font-size: 40rpx;
-   font-weight: 700;
+   font-size: 36rpx;
+   font-weight: 600;
    color: #1e293b;
-   display: block;
-   margin-bottom: 24rpx;
+   line-height: 1.4;
 }
 
 .salary-row {
    display: flex;
-   justify-content: space-between;
    align-items: center;
-   margin-bottom: 32rpx;
+   justify-content: space-between;
+   margin-top: 20rpx;
 }
 
 .salary-wrap {
@@ -513,62 +547,63 @@ const handleApply = () => {
 .salary-num {
    font-size: 48rpx;
    font-weight: 700;
-   color: #10b981;
+   color: #ff6b6b;
 }
 
 .salary-unit {
-   font-size: 28rpx;
-   color: #64748b;
-   margin-left: 8rpx;
+   font-size: 24rpx;
+   color: #999;
+   margin-left: 4rpx;
 }
 
 .salary-tags {
    display: flex;
-   gap: 12rpx;
+   gap: 8rpx;
 }
 
 .salary-tag {
-   font-size: 22rpx;
-   padding: 8rpx 16rpx;
-   border-radius: 8rpx;
-   background-color: #eff6ff;
-   color: #3b82f6;
+   padding: 6rpx 12rpx;
+   background: #f0f9ff;
+   color: #0077ff;
+   border-radius: 6rpx;
+   font-size: 20rpx;
+}
 
-   &.green {
-      background-color: #f0fdf4;
-      color: #16a34a;
-   }
+.salary-tag.green {
+   background: #f0fdf4;
+   color: #16a34a;
+}
 
-   &.purple {
-      background-color: #faf5ff;
-      color: #9333ea;
-   }
+.salary-tag.purple {
+   background: #faf5ff;
+   color: #9333ea;
 }
 
 .base-info-grid {
-   display: grid;
-   grid-template-columns: 1fr 1fr;
-   gap: 24rpx;
+   margin-top: 24rpx;
+   display: flex;
+   flex-direction: column;
+   gap: 16rpx;
 }
 
 .base-info-item {
    display: flex;
    align-items: center;
+   gap: 12rpx;
 }
 
 .info-icon-wrap {
-   width: 64rpx;
-   height: 64rpx;
-   background-color: #f1f5f9;
-   border-radius: 50%;
+   width: 48rpx;
+   height: 48rpx;
+   background: #f8fafc;
+   border-radius: 12rpx;
    display: flex;
    align-items: center;
    justify-content: center;
-   margin-right: 16rpx;
 }
 
 .info-icon {
-   font-size: 28rpx;
+   font-size: 24rpx;
 }
 
 .info-text {
@@ -590,33 +625,33 @@ const handleApply = () => {
 .section-header {
    display: flex;
    align-items: center;
+   gap: 12rpx;
    margin-bottom: 24rpx;
 }
 
 .section-icon-wrap {
-   width: 64rpx;
-   height: 64rpx;
-   border-radius: 50%;
+   width: 56rpx;
+   height: 56rpx;
+   border-radius: 14rpx;
    display: flex;
    align-items: center;
    justify-content: center;
-   margin-right: 16rpx;
+}
 
-   &.blue {
-      background-color: #eff6ff;
-   }
+.section-icon-wrap.blue {
+   background: #eff6ff;
+}
 
-   &.green {
-      background-color: #f0fdf4;
-   }
+.section-icon-wrap.green {
+   background: #f0fdf4;
+}
 
-   &.yellow {
-      background-color: #fef9c3;
-   }
+.section-icon-wrap.yellow {
+   background: #fefce8;
+}
 
-   &.purple {
-      background-color: #faf5ff;
-   }
+.section-icon-wrap.purple {
+   background: #faf5ff;
 }
 
 .section-icon {
@@ -624,7 +659,7 @@ const handleApply = () => {
 }
 
 .section-title {
-   font-size: 30rpx;
+   font-size: 32rpx;
    font-weight: 600;
    color: #1e293b;
 }
@@ -632,25 +667,25 @@ const handleApply = () => {
 .job-desc-content {
    display: flex;
    flex-direction: column;
-   gap: 12rpx;
+   gap: 16rpx;
 }
 
 .desc-item {
    font-size: 26rpx;
-   color: #64748b;
+   color: #475569;
    line-height: 1.6;
 }
 
 .job-desc-images {
-   display: grid;
-   grid-template-columns: repeat(3, 1fr);
+   display: flex;
    gap: 16rpx;
    margin-top: 24rpx;
+   flex-wrap: wrap;
 }
 
 .desc-img {
-   width: 100%;
-   height: 160rpx;
+   width: 200rpx;
+   height: 200rpx;
    border-radius: 12rpx;
 }
 
@@ -661,68 +696,68 @@ const handleApply = () => {
 }
 
 .salary-box {
-   background-color: #fef9c3;
+   background: #fff7ed;
    border-radius: 12rpx;
    padding: 24rpx;
+   display: flex;
+   flex-direction: column;
+   gap: 12rpx;
 }
 
 .salary-box-title {
-   font-size: 26rpx;
+   font-size: 28rpx;
    font-weight: 600;
-   color: #ca8a04;
-   display: block;
-   margin-bottom: 12rpx;
+   color: #9a3412;
 }
 
 .salary-box-item {
    font-size: 24rpx;
-   color: #64748b;
-   display: block;
-   margin-bottom: 8rpx;
+   color: #7c2d12;
+   line-height: 1.5;
 }
 
 .company-info {
    display: flex;
    align-items: flex-start;
+   gap: 20rpx;
 }
 
 .company-logo {
-   width: 128rpx;
-   height: 128rpx;
-   border-radius: 50%;
-   border: 1rpx solid #f1f5f9;
-   margin-right: 24rpx;
+   width: 100rpx;
+   height: 100rpx;
+   border-radius: 12rpx;
 }
 
 .company-details {
    flex: 1;
+   display: flex;
+   flex-direction: column;
+   gap: 8rpx;
 }
 
 .company-name {
    font-size: 30rpx;
    font-weight: 600;
    color: #1e293b;
-   display: block;
-   margin-bottom: 12rpx;
 }
 
 .company-tags {
    display: flex;
-   gap: 12rpx;
-   margin-bottom: 12rpx;
+   gap: 8rpx;
+   flex-wrap: wrap;
 }
 
 .company-tag {
-   font-size: 22rpx;
-   padding: 4rpx 16rpx;
+   padding: 4rpx 12rpx;
+   background: #f0fdf4;
+   color: #16a34a;
    border-radius: 6rpx;
-   background-color: #eff6ff;
-   color: #3b82f6;
+   font-size: 20rpx;
+}
 
-   &.gray {
-      background-color: #f8fafc;
-      color: #64748b;
-   }
+.company-tag.gray {
+   background: #f8fafc;
+   color: #64748b;
 }
 
 .company-address {
@@ -732,41 +767,37 @@ const handleApply = () => {
 
 .follow-btn {
    padding: 12rpx 24rpx;
-   border: 2rpx solid #3b82f6;
-   border-radius: 24rpx;
-
-   &:active {
-      opacity: 0.8;
-   }
+   background: #fff;
+   border: 2rpx solid #e2e8f0;
+   border-radius: 10rpx;
 }
 
 .follow-text {
    font-size: 24rpx;
-   color: #3b82f6;
+   color: #64748b;
 }
 
 .company-cert {
    margin-top: 32rpx;
+   padding-top: 32rpx;
+   border-top: 1rpx solid #f1f5f9;
 }
 
 .cert-title {
-   font-size: 22rpx;
-   color: #94a3b8;
-   display: block;
+   font-size: 26rpx;
+   color: #64748b;
    margin-bottom: 16rpx;
 }
 
 .cert-images {
    display: flex;
    gap: 16rpx;
-   overflow-x: auto;
 }
 
 .cert-img {
    width: 160rpx;
    height: 160rpx;
    border-radius: 12rpx;
-   flex-shrink: 0;
 }
 
 .bottom-bar {
@@ -774,54 +805,48 @@ const handleApply = () => {
    bottom: 0;
    left: 0;
    right: 0;
-   background-color: #fff;
-   padding: 24rpx 32rpx;
-   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+   background: #fff;
+   padding: 16rpx 32rpx;
+   padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
    display: flex;
    align-items: center;
-   justify-content: space-between;
-   border-top: 1rpx solid #e2e8f0;
+   gap: 24rpx;
    box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
 }
 
 .bottom-actions {
    display: flex;
-   gap: 48rpx;
+   gap: 32rpx;
 }
 
 .action-item {
    display: flex;
    flex-direction: column;
    align-items: center;
-   gap: 8rpx;
-
-   &:active {
-      opacity: 0.7;
-   }
+   gap: 4rpx;
 }
 
 .action-icon {
-   font-size: 40rpx;
+   font-size: 36rpx;
 }
 
 .action-text {
-   font-size: 22rpx;
+   font-size: 20rpx;
    color: #64748b;
 }
 
 .apply-btn {
    flex: 1;
    height: 88rpx;
-   background-color: #3b82f6;
-   border: none;
-   border-radius: 12rpx;
-   font-size: 30rpx;
+   background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
    color: #fff;
+   border-radius: 44rpx;
+   font-size: 30rpx;
    font-weight: 600;
-   margin-left: 32rpx;
-
-   &:active {
-      opacity: 0.9;
-   }
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border: none;
 }
 </style>

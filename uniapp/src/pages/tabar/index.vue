@@ -2,7 +2,8 @@
    <view class="tabar">
       <view class="router">
          <home v-if="currentTabbar === 0"></home>
-         <mine v-if="currentTabbar === 1"></mine>
+         <orderlst v-if="currentTabbar === 1"></orderlst>
+         <mine v-if="currentTabbar === 2"></mine>
       </view>
       <tn-tabbar
          v-model="currentTabbar"
@@ -19,7 +20,6 @@
             :icon="item.inactiveIcon"
             :active-icon="item.activeIcon"
             :text="item.title"
-            :bulge="index === 2"
             :badge="item.badge ? 0 : false"
             bulge-bg-color="tn-gradient__cool-6" />
       </tn-tabbar>
@@ -48,6 +48,7 @@
 import Dynamic from './dynamic/index.vue';
 import Home from './home/index.vue';
 import Mine from './mine/index.vue';
+import Orderlst from './orderlst/index.vue';
 import { useRouter } from 'uni-mini-router';
 import Message from './message/index.vue';
 import {
@@ -91,13 +92,18 @@ const tabbarData = [
       inactiveIcon: '../../static/tabbar/home_tn.png'
    },
    {
+      title: '兼职',
+      activeIcon: '../../static/tabbar/preferred_tnnew.png',
+      inactiveIcon: '../../static/tabbar/preferred_tn.png'
+   },
+   {
       title: '我的',
       activeIcon: '../../static/tabbar/mine_tnnew.png',
       inactiveIcon: '../../static/tabbar/mine_tn.png'
    }
 ];
 const beforeSwitch = (index: number, name: string | number) => {
-   if (index === 2) {
+   if (index === 3) {
       router.push({ name: 'sumbitfrom' });
       return false;
    }

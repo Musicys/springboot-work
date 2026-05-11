@@ -27,11 +27,19 @@
             <!-- 订单头部 -->
             <view class="order-header">
                <text class="order-title">{{ order.jobTitle }}</text>
-               <text
-                  class="order-status"
-                  :class="getStatusClass(order.orderStatus)">
-                  {{ getStatusText(order.orderStatus) }}
-               </text>
+               <view class="order-tags">
+                  <text
+                     v-if="order.isDepositRefunded !== undefined"
+                     class="refund-tag"
+                     :class="{ refunded: order.isDepositRefunded === 1 }">
+                     {{ order.isDepositRefunded === 1 ? '已退押' : '未退押' }}
+                  </text>
+                  <text
+                     class="order-status"
+                     :class="getStatusClass(order.orderStatus)">
+                     {{ getStatusText(order.orderStatus) }}
+                  </text>
+               </view>
             </view>
 
             <!-- 订单内容 -->
@@ -52,6 +60,7 @@
                         {{ order.workType }}
                      </text>
                   </view>
+
                   <view class="info-row">
                      <text class="location">
                         <text class="icon">📍</text>
@@ -68,7 +77,7 @@
                         <text class="value">¥{{ order.deposit }}</text>
                      </view>
                      <view class="amount">
-                        <text class="label">金额：</text>
+                        <text class="label">薪资：</text>
                         <text class="value highlight">¥{{ order.amount }}</text>
                      </view>
                   </view>
@@ -77,6 +86,10 @@
 
             <!-- 操作按钮 -->
             <view class="order-actions">
+               <view v-if="order.orderStatus === 0" class="waiting-text">
+                  <text>待商家同意招聘</text>
+               </view>
+
                <view
                   v-if="order.orderStatus === 1"
                   class="action-btn cancel"
@@ -93,7 +106,7 @@
                <view
                   v-if="order.orderStatus === 2"
                   class="action-btn"
-                  @click="contactMerchant(order.id)">
+                  @click="contactMerchant(order)">
                   <text>联系商家</text>
                </view>
                <view
@@ -105,8 +118,13 @@
                <view
                   v-if="order.orderStatus === 2"
                   class="action-btn primary"
-                  @click="confirmComplete(order.id)">
-                  <text>确认完成</text>
+                  :class="{ disabled: order.countdown && !order.canComplete }"
+                  @click="order.canComplete && confirmComplete(order.id)">
+                  <text v-if="order.countdown"
+                     >倒计时 {{ order.countdown }}</text
+                  >
+                  <text v-else-if="order.canComplete">确认完成</text>
+                  <text v-else>确认完成</text>
                </view>
 
                <view
@@ -114,12 +132,6 @@
                   class="action-btn"
                   @click="viewDetail(order.id)">
                   <text>查看详情</text>
-               </view>
-               <view
-                  v-if="order.orderStatus === 3"
-                  class="action-btn danger"
-                  @click="openDispute(order.id)">
-                  <text>异议申请</text>
                </view>
                <view
                   v-if="order.orderStatus === 3"
@@ -157,13 +169,9 @@
             <text class="payment-tip">押金将在完成兼职后原路退回</text>
             <view class="payment-methods">
                <view class="method-item active">
-                  <text class="method-icon">💳</text>
-                  <text class="method-name">微信支付</text>
+                  <text class="method-icon">💰</text>
+                  <text class="method-name">余额支付</text>
                   <text class="check-icon">✓</text>
-               </view>
-               <view class="method-item">
-                  <text class="method-icon">📱</text>
-                  <text class="method-name">支付宝</text>
                </view>
             </view>
             <button class="confirm-btn" @click="confirmPayment">
@@ -195,18 +203,6 @@
          <view class="modal-content dispute-modal" @click.stop>
             <text class="modal-title">异议申请</text>
             <view class="form-item">
-               <text class="form-label">异议类型</text>
-               <picker
-                  :value="disputeTypeIndex"
-                  :range="disputeTypes"
-                  @change="onDisputeTypeChange">
-                  <view class="picker-value">
-                     {{ disputeTypes[disputeTypeIndex] || '请选择异议类型' }}
-                     <text class="picker-arrow">›</text>
-                  </view>
-               </picker>
-            </view>
-            <view class="form-item">
                <text class="form-label">异议描述</text>
                <textarea
                   class="dispute-textarea"
@@ -214,10 +210,27 @@
                   placeholder="请详细描述您的异议"></textarea>
             </view>
             <view class="form-item">
-               <text class="form-label">上传凭证（选填）</text>
-               <view class="upload-area">
-                  <text class="upload-icon">📷</text>
-                  <text class="upload-text">点击上传凭证</text>
+               <text class="form-label">上传证据（必填，最多5张）</text>
+               <view class="upload-images">
+                  <view
+                     v-for="(image, index) in disputeImages"
+                     :key="index"
+                     class="image-item">
+                     <image
+                        :src="image"
+                        class="preview-image"
+                        mode="aspectFill"></image>
+                     <view class="delete-btn" @click="removeImage(index)">
+                        <text class="delete-icon">×</text>
+                     </view>
+                  </view>
+                  <view
+                     v-if="disputeImages.length < 5"
+                     class="upload-btn"
+                     @click="chooseImage">
+                     <text class="upload-icon">+</text>
+                     <text class="upload-text">添加</text>
+                  </view>
                </view>
                <text class="upload-tip">支持图片格式，大小不超过 5MB</text>
             </view>
@@ -246,21 +259,62 @@
             </button>
          </view>
       </view>
+
+      <!-- 联系商家弹窗 -->
+      <view
+         class="modal-overlay"
+         v-if="showContactModal"
+         @click="closeContactModal">
+         <view class="modal-content contact-modal" @click.stop>
+            <text class="modal-title">联系商家</text>
+            <view class="contact-info">
+               <view class="contact-item">
+                  <text class="contact-label">企业名称</text>
+                  <text class="contact-value">{{
+                     contactOrder?.companyName
+                  }}</text>
+               </view>
+               <view class="contact-item">
+                  <text class="contact-label">联系电话</text>
+                  <view class="phone-row">
+                     <text class="contact-value phone">{{
+                        contactOrder?.contactPhone
+                     }}</text>
+                     <view
+                        class="copy-btn"
+                        v-if="contactOrder?.contactPhone"
+                        @click="copyPhone(contactOrder.contactPhone)">
+                        <text class="copy-icon">📋</text>
+                        <text class="copy-text">复制</text>
+                     </view>
+                  </view>
+               </view>
+            </view>
+            <view class="contact-tip">
+               <text>请在工作时间内联系商家</text>
+            </view>
+            <button class="confirm-btn" @click="closeContactModal">
+               我知道了
+            </button>
+         </view>
+      </view>
    </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import * as apis from '@/api/job';
 
 // 状态列表
 const statusList = ref([
-   { label: '全部', value: 0 },
-   { label: '已发起', value: 1 },
+   { label: '全部', value: -1 },
+   { label: '待商家审核', value: 0 },
+   { label: '待入职', value: 1 },
    { label: '进行中', value: 2 },
-   { label: '已结算', value: 3 }
+   { label: '已完成', value: 3 }
 ]);
 
-const currentStatus = ref(0);
+const currentStatus = ref(-1);
 
 // 订单列表
 interface Order {
@@ -270,11 +324,17 @@ interface Order {
    coverImage: string;
    jobDescription: string;
    companyName: string;
+   contactPhone: string;
    workType: string;
    location: string;
    workTime: string;
    deposit: number;
    amount: string;
+   expireTime: string;
+   countdown: string;
+   canComplete: boolean;
+   isDepositRefunded?: number;
+   isSettled?: number;
 }
 
 const orderList = ref<Order[]>([]);
@@ -288,13 +348,67 @@ const showPaymentModal = ref(false);
 const showPaymentSuccessModal = ref(false);
 const showDisputeModal = ref(false);
 const showDisputeSuccessModal = ref(false);
+const showContactModal = ref(false);
 const paymentOrder = ref<Order | null>(null);
 const currentOrderId = ref(0);
+const contactOrder = ref<Order | null>(null);
 
 // 异议申请数据
-const disputeTypes = ['薪资问题', '工作内容不符', '工作时间问题', '其他问题'];
-const disputeTypeIndex = ref(0);
 const disputeDescription = ref('');
+const disputeImages = ref<string[]>([]); // 存储选择的图片路径
+
+// 选择图片
+const chooseImage = () => {
+   uni.chooseImage({
+      count: 5 - disputeImages.value.length,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: res => {
+         disputeImages.value = [...disputeImages.value, ...res.tempFilePaths];
+      },
+      fail: () => {
+         uni.showToast({ title: '选择图片失败', icon: 'none' });
+      }
+   });
+};
+
+// 删除图片
+const removeImage = (index: number) => {
+   disputeImages.value.splice(index, 1);
+};
+
+// 计算倒计时和是否可完成
+const calculateCountdown = (expireTime: string) => {
+   if (!expireTime) {
+      return { countdown: '', canComplete: false };
+   }
+
+   const expireDate = new Date(expireTime);
+   const now = new Date();
+   const diff = expireDate.getTime() - now.getTime();
+
+   if (diff <= 0) {
+      return { countdown: '', canComplete: true };
+   }
+
+   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+   let countdown = '';
+   if (days > 0) {
+      countdown = `${days}天${hours}时${minutes}分${seconds}秒`;
+   } else if (hours > 0) {
+      countdown = `${hours}时${minutes}分${seconds}秒`;
+   } else if (minutes > 0) {
+      countdown = `${minutes}分${seconds}秒`;
+   } else {
+      countdown = `${seconds}秒`;
+   }
+
+   return { countdown, canComplete: false };
+};
 
 // 切换状态
 const switchStatus = (status: number) => {
@@ -308,9 +422,14 @@ const switchStatus = (status: number) => {
 // 获取状态文本
 const getStatusText = (status: number) => {
    const statusMap: Record<number, string> = {
-      1: '已发起',
+      0: '待商家审核',
+      1: '待入职',
       2: '进行中',
-      3: '已结算'
+      3: '已完成',
+      4: '纠纷中',
+      5: '已结款',
+      6: '用户爽约',
+      7: '异常终止'
    };
    return statusMap[status] || '未知';
 };
@@ -318,9 +437,14 @@ const getStatusText = (status: number) => {
 // 获取状态样式类
 const getStatusClass = (status: number) => {
    const classMap: Record<number, string> = {
+      0: 'info',
       1: 'warning',
       2: 'primary',
-      3: 'gray'
+      3: 'success',
+      4: 'danger',
+      5: 'gray',
+      6: 'gray',
+      7: 'danger'
    };
    return classMap[status] || 'gray';
 };
@@ -331,69 +455,55 @@ const fetchOrderList = async () => {
 
    loading.value = true;
    try {
-      // 模拟数据
-      const mockData: Order[] = [
-         {
-            id: 1,
-            jobTitle: '短视频剪辑兼职',
-            orderStatus: 1,
-            coverImage: 'https://picsum.photos/seed/job1/100/100',
-            jobDescription: '短视频剪辑兼职 在家可做 日结',
-            companyName: '北京创想文化传媒有限公司',
-            workType: '线上',
-            location: '线上办公',
-            workTime: '2026-04-10',
-            deposit: 50,
-            amount: '150'
-         },
-         {
-            id: 2,
-            jobTitle: '图文排版兼职',
-            orderStatus: 2,
-            coverImage: 'https://picsum.photos/seed/job2/100/100',
-            jobDescription: '图文排版兼职 简单易做 时间自由',
-            companyName: '上海创意设计有限公司',
-            workType: '线下',
-            location: '上海市静安区',
-            workTime: '2026-04-08 至 2026-04-15',
-            deposit: 30,
-            amount: '120/天'
-         },
-         {
-            id: 3,
-            jobTitle: '促销活动兼职',
-            orderStatus: 3,
-            coverImage: 'https://picsum.photos/seed/job3/100/100',
-            jobDescription: '促销活动兼职 日结 包午餐',
-            companyName: '广州市场营销有限公司',
-            workType: '线下',
-            location: '广州市天河区',
-            workTime: '2026-04-01',
-            deposit: 0,
-            amount: '180'
+      const params: any = {
+         pageNum: pageNum.value,
+         pageSize: pageSize.value
+      };
+
+      // 添加状态筛选条件
+      if (currentStatus.value >= 0) {
+         params.orderStatus = currentStatus.value;
+      }
+
+      const res = await apis.getOrderList(params);
+
+      if (res.code === 0 && res.data && res.data.records) {
+         const records = res.data.records as any[];
+         const orders: Order[] = records.map(item => {
+            const expireTime = item.expireTime || '';
+            const { countdown, canComplete } = calculateCountdown(expireTime);
+            return {
+               id: item.id || 0,
+               jobTitle: item.jobTitle || '未知岗位',
+               orderStatus: item.orderStatus || 0,
+               coverImage:
+                  item.jobCover || 'https://picsum.photos/seed/job/100/100',
+               jobDescription: item.jobDescription || item.jobTitle || '',
+               companyName: item.companyName || '未知企业',
+               contactPhone: item.contactPhone || '',
+               workType: item.jobTypeDesc || '其他',
+               location: item.regionName || '线上办公',
+               workTime: item.workTimeDesc || '',
+               deposit: item.depositAmount || 0,
+               amount: item.salary ? `¥${item.salary}` : '',
+               expireTime,
+               countdown,
+               canComplete,
+               isDepositRefunded: item.isDepositRefunded,
+               isSettled: item.isSettled
+            };
+         });
+
+         if (pageNum.value === 1) {
+            orderList.value = orders;
+         } else {
+            orderList.value = [...orderList.value, ...orders];
          }
-      ];
 
-      // 筛选数据
-      let filteredData = mockData;
-      if (currentStatus.value > 0) {
-         filteredData = mockData.filter(
-            item => item.orderStatus === currentStatus.value
-         );
-      }
-
-      // 模拟分页
-      const start = (pageNum.value - 1) * pageSize.value;
-      const end = start + pageSize.value;
-      const paginatedData = filteredData.slice(start, end);
-
-      if (pageNum.value === 1) {
-         orderList.value = paginatedData;
+         hasMore.value = records.length >= pageSize.value;
       } else {
-         orderList.value = [...orderList.value, ...paginatedData];
+         hasMore.value = false;
       }
-
-      hasMore.value = paginatedData.length >= pageSize.value;
    } catch (error) {
       console.error('获取订单列表失败:', error);
    } finally {
@@ -410,13 +520,31 @@ const loadMore = () => {
 };
 
 // 取消订单
-const cancelOrder = (id: number) => {
+const cancelOrder = async (id: number) => {
    uni.showModal({
       title: '确认取消',
       content: '确定要取消该订单吗？',
-      success: res => {
+      success: async res => {
          if (res.confirm) {
-            uni.showToast({ title: '订单已取消', icon: 'success' });
+            try {
+               const res = await apis.cancelOrder(id);
+               if (res.code === 0) {
+                  uni.showToast({ title: '订单已取消', icon: 'success' });
+                  // 刷新订单列表
+                  pageNum.value = 1;
+                  hasMore.value = true;
+                  orderList.value = [];
+                  fetchOrderList();
+               } else {
+                  uni.showToast({
+                     title: res.message || '取消失败',
+                     icon: 'none'
+                  });
+               }
+            } catch (error) {
+               console.error('取消订单失败:', error);
+               uni.showToast({ title: '取消失败', icon: 'none' });
+            }
          }
       }
    });
@@ -434,56 +562,99 @@ const closePaymentModal = () => {
 };
 
 // 确认支付
-const confirmPayment = () => {
-   showPaymentModal.value = false;
-   setTimeout(() => {
-      showPaymentSuccessModal.value = true;
-   }, 300);
+const confirmPayment = async () => {
+   if (!paymentOrder.value) return;
+
+   uni.showLoading({ title: '处理中...' });
+
+   try {
+      const res = await apis.confirmOrder(paymentOrder.value.id);
+      if (res.code === 0) {
+         showPaymentModal.value = false;
+         setTimeout(() => {
+            showPaymentSuccessModal.value = true;
+         }, 300);
+      } else {
+         uni.showToast({
+            title: res.message || '支付失败',
+            icon: 'none'
+         });
+      }
+   } catch (error) {
+      console.error('支付押金失败:', error);
+      uni.showToast({ title: '支付失败', icon: 'none' });
+   } finally {
+      uni.hideLoading();
+   }
 };
 
 // 关闭支付成功弹窗
 const closePaymentSuccessModal = () => {
    showPaymentSuccessModal.value = false;
-   // 更新订单状态
-   if (paymentOrder.value) {
-      const index = orderList.value.findIndex(
-         item => item.id === paymentOrder.value!.id
-      );
-      if (index > -1) {
-         orderList.value[index].orderStatus = 2;
-      }
-   }
+   // 刷新订单列表
+   pageNum.value = 1;
+   hasMore.value = true;
+   orderList.value = [];
+   fetchOrderList();
 };
 
 // 联系商家
-const contactMerchant = (id: number) => {
-   uni.showToast({ title: '联系商家功能开发中', icon: 'none' });
+const contactMerchant = (order: Order) => {
+   contactOrder.value = order;
+   showContactModal.value = true;
+};
+
+// 关闭联系商家弹窗
+const closeContactModal = () => {
+   showContactModal.value = false;
+   contactOrder.value = null;
+};
+
+// 复制电话
+const copyPhone = (phone: string) => {
+   uni.setClipboardData({
+      data: phone,
+      success: () => {
+         uni.showToast({ title: '复制成功', icon: 'success' });
+      },
+      fail: () => {
+         uni.showToast({ title: '复制失败', icon: 'none' });
+      }
+   });
 };
 
 // 异议申请
 const openDispute = (id: number) => {
    currentOrderId.value = id;
-   disputeTypeIndex.value = 0;
    disputeDescription.value = '';
+   disputeImages.value = [];
    showDisputeModal.value = true;
 };
 
 // 关闭异议弹窗
 const closeDisputeModal = () => {
    showDisputeModal.value = false;
+   disputeImages.value = [];
 };
 
-// 异议类型选择
-const onDisputeTypeChange = (e: any) => {
-   disputeTypeIndex.value = e.detail.value;
+// 上传图片到服务器
+const uploadImages = async (images: string[]): Promise<string[]> => {
+   const uploadedUrls: string[] = [];
+   for (const imagePath of images) {
+      try {
+         const res = await apis.uploadFile(imagePath);
+         if (res.code === 0 && res.data && res.data.url) {
+            uploadedUrls.push(res.data.url);
+         }
+      } catch (e) {
+         console.error('上传图片失败:', e);
+      }
+   }
+   return uploadedUrls;
 };
 
 // 提交异议申请
-const submitDispute = () => {
-   if (!disputeTypes[disputeTypeIndex.value]) {
-      uni.showToast({ title: '请选择异议类型', icon: 'none' });
-      return;
-   }
+const submitDispute = async () => {
    if (
       !disputeDescription.value ||
       disputeDescription.value.trim().length < 10
@@ -494,10 +665,44 @@ const submitDispute = () => {
       });
       return;
    }
-   showDisputeModal.value = false;
-   setTimeout(() => {
-      showDisputeSuccessModal.value = true;
-   }, 300);
+   if (disputeImages.value.length === 0) {
+      uni.showToast({ title: '请至少上传一张证据图片', icon: 'none' });
+      return;
+   }
+
+   uni.showLoading({ title: '提交中...' });
+
+   try {
+      // 先上传图片
+      const uploadedUrls = await uploadImages(disputeImages.value);
+
+      const res = await apis.applyArbitration({
+         orderId: currentOrderId.value,
+         userEvidenceSummary: disputeDescription.value,
+         userEvidenceImages: uploadedUrls
+      });
+
+      if (res.code === 0) {
+         showDisputeModal.value = false;
+         setTimeout(() => {
+            showDisputeSuccessModal.value = true;
+            // 刷新订单列表
+            pageNum.value = 1;
+            hasMore.value = true;
+            orderList.value = [];
+         }, 300);
+      } else {
+         uni.showToast({
+            title: res.message || '提交失败',
+            icon: 'none'
+         });
+      }
+   } catch (error) {
+      console.error('提交异议申请失败:', error);
+      uni.showToast({ title: '提交失败', icon: 'none' });
+   } finally {
+      uni.hideLoading();
+   }
 };
 
 // 关闭异议成功弹窗
@@ -537,9 +742,24 @@ const goBack = () => {
    uni.navigateBack();
 };
 
+// 更新倒计时
+const updateCountdowns = () => {
+   orderList.value.forEach(order => {
+      if (order.orderStatus === 2 && order.expireTime) {
+         const { countdown, canComplete } = calculateCountdown(
+            order.expireTime
+         );
+         order.countdown = countdown;
+         order.canComplete = canComplete;
+      }
+   });
+};
+
 // 页面加载
 onMounted(() => {
    fetchOrderList();
+   // 每秒更新倒计时
+   setInterval(updateCountdowns, 1000);
 });
 </script>
 
@@ -639,6 +859,25 @@ onMounted(() => {
    color: #1e293b;
 }
 
+.order-tags {
+   display: flex;
+   align-items: center;
+   gap: 12rpx;
+}
+
+.refund-tag {
+   font-size: 22rpx;
+   padding: 6rpx 16rpx;
+   border-radius: 6rpx;
+   background-color: #fef3c7;
+   color: #d97706;
+
+   &.refunded {
+      background-color: #dcfce7;
+      color: #16a34a;
+   }
+}
+
 .order-status {
    font-size: 22rpx;
    padding: 6rpx 16rpx;
@@ -652,6 +891,21 @@ onMounted(() => {
    &.primary {
       background-color: #eff6ff;
       color: #3b82f6;
+   }
+
+   &.info {
+      background-color: #f0f9ff;
+      color: #0ea5e9;
+   }
+
+   &.success {
+      background-color: #d1fae5;
+      color: #10b981;
+   }
+
+   &.danger {
+      background-color: #fee2e2;
+      color: #ef4444;
    }
 
    &.gray {
@@ -732,9 +986,32 @@ onMounted(() => {
    margin-top: 8rpx;
 }
 
+.refund-status {
+   display: flex;
+   align-items: center;
+   font-size: 22rpx;
+   margin-top: 8rpx;
+
+   .label {
+      color: #94a3b8;
+   }
+
+   .value {
+      font-weight: 500;
+
+      &.refunded {
+         color: #10b981;
+      }
+
+      &.not-refunded {
+         color: #f59e0b;
+      }
+   }
+}
+
 .deposit,
 .amount {
-   font-size: 22rpx;
+   font-size: 24rpx;
    display: flex;
    align-items: center;
 
@@ -777,6 +1054,14 @@ onMounted(() => {
       text {
          color: #fff;
       }
+
+      &.disabled {
+         background-color: #cbd5e1;
+         border-color: #cbd5e1;
+         text {
+            color: #94a3b8;
+         }
+      }
    }
 
    &.danger {
@@ -795,6 +1080,14 @@ onMounted(() => {
    &:active {
       opacity: 0.8;
       transform: scale(0.95);
+   }
+}
+
+.waiting-text {
+   padding: 12rpx 24rpx;
+   text {
+      font-size: 24rpx;
+      color: #909399;
    }
 }
 
@@ -999,23 +1292,61 @@ onMounted(() => {
    box-sizing: border-box;
 }
 
-.upload-area {
+.upload-images {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 16rpx;
+}
+
+.image-item {
+   position: relative;
+   width: 180rpx;
+   height: 180rpx;
+   border-radius: 12rpx;
+   overflow: hidden;
+}
+
+.preview-image {
+   width: 100%;
+   height: 100%;
+}
+
+.delete-btn {
+   position: absolute;
+   top: 8rpx;
+   right: 8rpx;
+   width: 40rpx;
+   height: 40rpx;
+   background-color: rgba(0, 0, 0, 0.6);
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.delete-icon {
+   font-size: 28rpx;
+   color: #fff;
+}
+
+.upload-btn {
+   width: 180rpx;
+   height: 180rpx;
+   border: 2rpx dashed #cbd5e1;
+   border-radius: 12rpx;
    display: flex;
    flex-direction: column;
    align-items: center;
    justify-content: center;
-   padding: 48rpx;
-   border: 2rpx dashed #cbd5e1;
-   border-radius: 12rpx;
 }
 
 .upload-icon {
-   font-size: 64rpx;
-   margin-bottom: 16rpx;
+   font-size: 48rpx;
+   margin-bottom: 8rpx;
 }
 
 .upload-text {
-   font-size: 28rpx;
+   font-size: 24rpx;
    color: #94a3b8;
 }
 
@@ -1061,6 +1392,85 @@ onMounted(() => {
    &:active {
       opacity: 0.8;
       transform: scale(0.98);
+   }
+}
+
+/* 联系商家弹窗 */
+.contact-modal {
+   padding: 40rpx;
+}
+
+.contact-info {
+   margin-top: 32rpx;
+}
+
+.contact-item {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 20rpx 0;
+   border-bottom: 2rpx solid #f1f5f9;
+
+   &:last-child {
+      border-bottom: none;
+   }
+}
+
+.contact-label {
+   font-size: 28rpx;
+   color: #64748b;
+}
+
+.contact-value {
+   font-size: 28rpx;
+   color: #1e293b;
+   font-weight: 500;
+
+   &.phone {
+      color: #3b82f6;
+      font-size: 32rpx;
+      font-weight: 600;
+   }
+}
+
+.phone-row {
+   display: flex;
+   align-items: center;
+   gap: 20rpx;
+}
+
+.copy-btn {
+   display: flex;
+   align-items: center;
+   gap: 8rpx;
+   padding: 12rpx 20rpx;
+   background-color: #eff6ff;
+   border-radius: 8rpx;
+
+   &:active {
+      opacity: 0.8;
+   }
+}
+
+.copy-icon {
+   font-size: 28rpx;
+}
+
+.copy-text {
+   font-size: 24rpx;
+   color: #3b82f6;
+}
+
+.contact-tip {
+   margin-top: 32rpx;
+   padding: 20rpx;
+   background-color: #fffbeb;
+   border-radius: 12rpx;
+   text-align: center;
+
+   text {
+      font-size: 24rpx;
+      color: #d97706;
    }
 }
 </style>

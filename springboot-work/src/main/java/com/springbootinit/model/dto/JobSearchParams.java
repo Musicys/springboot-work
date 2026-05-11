@@ -9,6 +9,9 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "兼职岗位搜索参数类")
 public class JobSearchParams {
 
+    @ApiModelProperty(value = "岗位ID")
+    private Long id;
+
     @ApiModelProperty(value = "岗位标题")
     private String title;
 
@@ -24,8 +27,19 @@ public class JobSearchParams {
     @ApiModelProperty(value = "状态")
     private Integer status;
 
+    @ApiModelProperty(value = "审核状态：0-待审核，1-审核通过")
+    private Integer jobStatus;
+
     @ApiModelProperty(value = "交易模式")
     private Integer tradeMode;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getTitle() {
         return title;
@@ -65,6 +79,14 @@ public class JobSearchParams {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getJobStatus() {
+        return jobStatus;
+    }
+
+    public void setJobStatus(Integer jobStatus) {
+        this.jobStatus = jobStatus;
     }
 
     public Integer getTradeMode() {

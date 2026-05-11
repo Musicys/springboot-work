@@ -37,7 +37,7 @@
                <ElSelect v-model="form.orderStatus" :disabled="show" placeholder="请选择">
                   <ElOption label="待入职" :value="1" />
                   <ElOption label="进行中" :value="2" />
-                  <ElOption label="完成待结算" :value="3" />
+                  <ElOption label="已完成" :value="3" />
                   <ElOption label="纠纷中" :value="4" />
                   <ElOption label="已结款" :value="5" />
                   <ElOption label="用户爽约" :value="6" />

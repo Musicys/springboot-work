@@ -5,25 +5,37 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.springbootinit.common.BaseResponse;
 import com.springbootinit.common.ErrorCode;
 import com.springbootinit.common.ResultUtils;
-import com.springbootinit.model.domain.JbJobs;
-import com.springbootinit.model.domain.UrUsers;
-import com.springbootinit.service.JbJobsService;
-import com.springbootinit.service.UrUsersService;
+import com.springbootinit.exception.BusinessException;
+import com.springbootinit.model.domain.*;
+import com.springbootinit.model.dto.JobQueryDTO;
+import com.springbootinit.model.dto.ProJobPublishRequest;
+import com.springbootinit.model.vo.JobDetailVO;
+import com.springbootinit.model.vo.JobVO;
+import com.springbootinit.model.vo.OrderVO;
+import com.springbootinit.service.*;
 import com.springbootinit.utils.JwtUtils;
+import com.springbootinit.utils.UserHolder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * 商家-兼职管理接口
+ * 商家端兼职接口
  */
-@Api(tags = "商家-兼职管理")
+@Api(tags = "商家端兼职接口")
 @RestController
 @RequestMapping("/pro/job")
 public class ProJobController {
@@ -32,439 +44,845 @@ public class ProJobController {
     private JbJobsService jbJobsService;
 
     @Autowired
+    private JwtUtils jwtUtils;
+
+    @Autowired
+    private UrMerchantProfilesService urMerchantProfilesService;
+
+    @Autowired
+    private OdOrdersService odOrdersService;
+
+    @Autowired
+    private OdApplicationsService odApplicationsService;
+
+    @Autowired
     private UrUsersService urUsersService;
 
     @Autowired
-    private JwtUtils jwtUtils;
+    private UrIntentionsService urIntentionService;
 
-    /**
-     * 获取本商户的兼职列表（分页）
-     *
-     * @param requestBody 请求体，包含页码、每页大小和搜索参数
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 兼职列表
-     */
-    @ApiOperation(value = "获取本商户的兼职列表", notes = "分页获取本商户的兼职列表，支持搜索")
-    @PostMapping("/list")
-    public BaseResponse<Page<JbJobs>> getJobs(
-            @ApiParam(value = "请求体", required = true) @RequestBody Map<String, Object> requestBody,
+    @Autowired
+    private WlWalletsService wlWalletsService;
+
+    @Autowired
+    private WlTransactionLogsService wlTransactionLogsService;
+
+    private Long getUserIdFromCookie(HttpServletRequest request) {
+        String token = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("Merchant-Authorization".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null) {
+            return null;
+        }
+        try {
+            return jwtUtils.getUserIdFromToken(token);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @ApiOperation(value = "发布兼职", notes = "商家发布新的兼职岗位")
+    @PostMapping("/publish")
+    public BaseResponse<Long> publishJob(@RequestBody ProJobPublishRequest request, HttpServletRequest httpRequest) {
+        Long userId = getUserIdFromCookie(httpRequest);
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "请先登录");
+        }
+
+        JbJobs job = new JbJobs();
+        job.setMerchantId(userId);
+        job.setTitle(request.getTitle());
+        job.setDescription(request.getDescription());
+        job.setSalaryMin(request.getSalaryMin());
+        job.setSalaryMax(request.getSalaryMax());
+        job.setCategoryId(Math.toIntExact(request.getCategoryId()));
+        job.setRegionCode(request.getRegionCode());
+        job.setRegionName(request.getRegionName());
+        job.setDepositAmount(request.getDepositAmount() != null ? request.getDepositAmount() : BigDecimal.ZERO);
+        job.setSettlementCycle(Integer.valueOf(request.getSettlementCycle()));
+        job.setWorkTimeType(request.getWorkTimeType());
+        job.setWorkTimeDesc(request.getWorkTimeDesc());
+        job.setJobType(request.getJobType());
+        job.setRecruitNum(request.getRecruitNum());
+        job.setBriefIntro(request.getBriefIntro());
+        job.setTradeMode(request.getTradeMode() != null ? request.getTradeMode() : 1);
+        job.setJobStatus(0);
+        job.setStatus(1);
+        job.setPublishTime(new java.util.Date());
+
+        boolean saved = jbJobsService.save(job);
+        if (!saved) {
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "发布失败");
+        }
+
+        return ResultUtils.success(job.getId());
+    }
+
+    @ApiOperation(value = "待审核岗位列表", notes = "获取当前商家待审核的兼职岗位列表")
+    @PostMapping("/list/pending")
+    public BaseResponse<Page<JobVO>> listPendingJobs(
+            @RequestBody JobQueryDTO queryDTO,
             HttpServletRequest request) {
-        // 从Cookie中获取token
+        Long userId = getUserIdFromCookie(request);
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "请先登录");
+        }
+
+        Page<JbJobs> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        QueryWrapper<JbJobs> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("merchant_id", userId);
+        queryWrapper.eq("job_status", 0);
+
+        String keyword = queryDTO.getKeyword();
+        if (StringUtils.isNotBlank(keyword)) {
+            queryWrapper.like("title", keyword);
+        }
+
+        queryWrapper.orderByDesc("created_at");
+        Page<JbJobs> jobPage = jbJobsService.page(page, queryWrapper);
+
+        Page<JobVO> resultPage = new Page<>(jobPage.getCurrent(), jobPage.getSize(), jobPage.getTotal());
+        resultPage.setRecords(jobPage.getRecords().stream().map(job -> {
+            JobVO vo = new JobVO();
+            BeanUtils.copyProperties(job, vo);
+            vo.setId(job.getId());
+            return vo;
+        }).collect(Collectors.toList()));
+
+        return ResultUtils.success(resultPage);
+    }
+
+    @ApiOperation(value = "进行中岗位列表", notes = "获取当前商家进行中的兼职岗位列表(job_status=1, status=2)")
+    @PostMapping("/list/active")
+    public BaseResponse<Page<JobVO>> listActiveJobs(
+            @RequestBody JobQueryDTO queryDTO,
+            HttpServletRequest request) {
+        Long userId = getUserIdFromCookie(request);
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "请先登录");
+        }
+
+        Page<JbJobs> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        QueryWrapper<JbJobs> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("merchant_id", userId);
+        queryWrapper.eq("job_status", 1);
+        queryWrapper.eq("status", 2);
+
+        String keyword = queryDTO.getKeyword();
+        if (StringUtils.isNotBlank(keyword)) {
+            queryWrapper.like("title", keyword);
+        }
+
+        queryWrapper.orderByDesc("created_at");
+        Page<JbJobs> jobPage = jbJobsService.page(page, queryWrapper);
+
+        Page<JobVO> resultPage = new Page<>(jobPage.getCurrent(), jobPage.getSize(), jobPage.getTotal());
+        resultPage.setRecords(jobPage.getRecords().stream().map(job -> {
+            JobVO vo = new JobVO();
+            BeanUtils.copyProperties(job, vo);
+            vo.setId(job.getId());
+            return vo;
+        }).collect(Collectors.toList()));
+
+        return ResultUtils.success(resultPage);
+    }
+
+    @ApiOperation(value = "岗位详情", notes = "获取兼职岗位详细信息")
+    @GetMapping("/{id}")
+    public BaseResponse<JobDetailVO> getJobDetail(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = getUserIdFromCookie(request);
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "请先登录");
+        }
+
+        JbJobs job = jbJobsService.getById(id);
+        if (job == null) {
+            return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "岗位不存在");
+        }
+
+        if (!job.getMerchantId().equals(userId)) {
+            return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权查看该岗位");
+        }
+
+        JobDetailVO vo = new JobDetailVO();
+        BeanUtils.copyProperties(job, vo);
+
+        return ResultUtils.success(vo);
+    }
+
+    @ApiOperation(value = "删除岗位", notes = "删除发布的兼职岗位")
+    @DeleteMapping("/{id}")
+    public BaseResponse<Boolean> deleteJob(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = getUserIdFromCookie(request);
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "请先登录");
+        }
+
+        JbJobs job = jbJobsService.getById(id);
+        if (job == null) {
+            return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "岗位不存在");
+        }
+
+        if (!job.getMerchantId().equals(userId)) {
+            return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权删除该岗位");
+        }
+
+        boolean removed = jbJobsService.removeById(id);
+        return ResultUtils.success(removed);
+    }
+
+    @ApiOperation(value = "获取所有待审核的应聘列表", notes = "获取当前商家所有待审核的应聘订单信息")
+    @GetMapping("/applications/all")
+    public BaseResponse<List<Map<String, Object>>> getAllApplications(
+            javax.servlet.http.HttpServletRequest request) {
         String token = getTokenFromCookie(request);
         if (token == null) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
         }
 
-        // 验证token
         try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
+            Long userId = jwtUtils.getUserIdFromToken(token);
 
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
+            // 查询当前商家的所有待审核订单（order_status=0）
+            QueryWrapper<OdOrders> orderQueryWrapper = new QueryWrapper<>();
+            orderQueryWrapper.eq("merchant_id", userId);
+            orderQueryWrapper.eq("order_status", 0);
+            orderQueryWrapper.orderByDesc("created_at");
+            List<OdOrders> orders = odOrdersService.list(orderQueryWrapper);
 
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
-            }
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (OdOrders order : orders) {
+                Map<String, Object> application = new HashMap<>();
+                application.put("orderId", order.getId());
+                application.put("jobId", order.getJobId());
+                application.put("orderStatus", order.getOrderStatus());
+                application.put("createdAt", order.getCreatedAt());
 
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
-            }
-
-            // 获取分页参数 - 支持多种键名和Number类型
-            Integer pageNum = null;
-            Integer pageSize = null;
-            
-            if (requestBody.containsKey("pageNum")) {
-                Object pageNumObj = requestBody.get("pageNum");
-                if (pageNumObj instanceof Number) {
-                    pageNum = ((Number) pageNumObj).intValue();
+                // 查询兼职信息
+                JbJobs job = jbJobsService.getById(order.getJobId());
+                if (job != null) {
+                    application.put("jobTitle", job.getTitle());
+                    application.put("jobStatus", job.getStatus());
+                    application.put("jobJobStatus", job.getJobStatus());
+                    application.put("salaryMin", job.getSalaryMin());
+                    application.put("salaryMax", job.getSalaryMax());
                 }
-            } else if (requestBody.containsKey("page")) {
-                Object pageObj = requestBody.get("page");
-                if (pageObj instanceof Number) {
-                    pageNum = ((Number) pageObj).intValue();
-                }
-            }
-            
-            if (requestBody.containsKey("pageSize")) {
-                Object pageSizeObj = requestBody.get("pageSize");
-                if (pageSizeObj instanceof Number) {
-                    pageSize = ((Number) pageSizeObj).intValue();
-                }
-            } else if (requestBody.containsKey("size")) {
-                Object sizeObj = requestBody.get("size");
-                if (sizeObj instanceof Number) {
-                    pageSize = ((Number) sizeObj).intValue();
-                }
-            }
-            
-            if (pageNum == null || pageSize == null) {
-                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "分页参数不能为空");
-            }
-            
-            // 参数校验
-            if (pageNum < 1) {
-                pageNum = 1;
-            }
-            if (pageSize < 1 || pageSize > 100) {
-                pageSize = 10;
-            }
 
-            // 获取搜索参数
-            Map<String, Object> params = null;
-            if (requestBody.containsKey("params") && requestBody.get("params") instanceof Map) {
-                params = (Map<String, Object>) requestBody.get("params");
+                // 查询用户信息
+                UrUsers user = urUsersService.getById(order.getUserId());
+                if (user != null) {
+                    Map<String, Object> userInfo = new HashMap<>();
+                    userInfo.put("id", user.getId());
+                    userInfo.put("username", user.getUsername());
+                    userInfo.put("avatarUrl", user.getAvatarUrl());
+                    userInfo.put("creditCode", user.getCreditScore());
+                    application.put("user", userInfo);
+
+                    // 查询求职意向信息
+                    QueryWrapper<UrIntentions> intentionQueryWrapper = new QueryWrapper<>();
+                    intentionQueryWrapper.eq("user_id", order.getUserId());
+                    UrIntentions intentions = urIntentionService.getOne(intentionQueryWrapper);
+                    if (intentions != null) {
+                        Map<String, Object> intentionInfo = new HashMap<>();
+                        intentionInfo.put("realName", intentions.getRealName());
+                        intentionInfo.put("studentId", intentions.getStudentId());
+                        intentionInfo.put("age", intentions.getAge());
+                        intentionInfo.put("gender", intentions.getGender());
+                        intentionInfo.put("phone", intentions.getPhone());
+                        intentionInfo.put("profession", intentions.getProfession());
+                        intentionInfo.put("introduction", intentions.getIntroduction());
+                        intentionInfo.put("tagName", intentions.getTagName());
+                        application.put("intention", intentionInfo);
+                    }
+                }
+
+                result.add(application);
             }
 
-            // 查询本商户的兼职列表
-            Page<JbJobs> pageInfo = new Page<>(pageNum, pageSize);
-            QueryWrapper<JbJobs> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("merchant_id", merchantId);
-            queryWrapper.orderByDesc("created_at");
-
-            // 处理搜索参数
-            if (params != null && !params.isEmpty()) {
-                // 岗位标题
-                if (params.containsKey("title") && params.get("title") != null && !params.get("title").toString().trim().isEmpty()) {
-                    queryWrapper.like("title", params.get("title"));
-                }
-                // 分类ID
-                if (params.containsKey("categoryId") && params.get("categoryId") != null) {
-                    queryWrapper.eq("category_id", params.get("categoryId"));
-                }
-                // 地区代码
-                if (params.containsKey("regionCode") && params.get("regionCode") != null && !params.get("regionCode").toString().trim().isEmpty()) {
-                    queryWrapper.eq("region_code", params.get("regionCode"));
-                }
-                // 状态
-                if (params.containsKey("status") && params.get("status") != null) {
-                    queryWrapper.eq("status", params.get("status"));
-                }
-                // 交易模式
-                if (params.containsKey("tradeMode") && params.get("tradeMode") != null) {
-                    queryWrapper.eq("trade_mode", params.get("tradeMode"));
-                }
-                // 最低薪资
-                if (params.containsKey("salaryMin") && params.get("salaryMin") != null) {
-                    queryWrapper.ge("salary_min", params.get("salaryMin"));
-                }
-                // 最高薪资
-                if (params.containsKey("salaryMax") && params.get("salaryMax") != null) {
-                    queryWrapper.le("salary_max", params.get("salaryMax"));
-                }
-            }
-
-            Page<JbJobs> result = jbJobsService.page(pageInfo, queryWrapper);
             return ResultUtils.success(result);
         } catch (Exception e) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
         }
     }
 
-    /**
-     * 获取兼职详情
-     *
-     * @param jobId 兼职ID
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 兼职详情
-     */
-    @ApiOperation(value = "获取兼职详情", notes = "根据ID获取兼职详细信息")
-    @PostMapping("/detail")
-    public BaseResponse<JbJobs> getJob(
-            @ApiParam(value = "兼职ID", required = true) @RequestParam Long jobId,
-            HttpServletRequest request) {
-        // 从Cookie中获取token
+    @ApiOperation(value = "获取所有待入职的应聘列表", notes = "获取当前商家所有待入职的应聘订单信息")
+    @GetMapping("/applications/pending-entry")
+    public BaseResponse<List<Map<String, Object>>> getPendingEntryApplications(
+            javax.servlet.http.HttpServletRequest request) {
         String token = getTokenFromCookie(request);
         if (token == null) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
         }
 
-        // 验证token
         try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
+            Long userId = jwtUtils.getUserIdFromToken(token);
 
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
+            // 查询当前商家的所有待入职订单（order_status=1）
+            QueryWrapper<OdOrders> orderQueryWrapper = new QueryWrapper<>();
+            orderQueryWrapper.eq("merchant_id", userId);
+            orderQueryWrapper.eq("order_status", 1);
+            orderQueryWrapper.orderByDesc("created_at");
+            List<OdOrders> orders = odOrdersService.list(orderQueryWrapper);
 
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (OdOrders order : orders) {
+                Map<String, Object> application = new HashMap<>();
+                application.put("orderId", order.getId());
+                application.put("jobId", order.getJobId());
+                application.put("orderStatus", order.getOrderStatus());
+                application.put("createdAt", order.getCreatedAt());
+
+                // 查询兼职信息
+                JbJobs job = jbJobsService.getById(order.getJobId());
+                if (job != null) {
+                    application.put("jobTitle", job.getTitle());
+                    application.put("jobStatus", job.getStatus());
+                    application.put("jobJobStatus", job.getJobStatus());
+                }
+
+                // 查询用户信息
+                UrUsers user = urUsersService.getById(order.getUserId());
+                if (user != null) {
+                    Map<String, Object> userInfo = new HashMap<>();
+                    userInfo.put("id", user.getId());
+                    userInfo.put("username", user.getUsername());
+                    userInfo.put("avatarUrl", user.getAvatarUrl());
+                    userInfo.put("creditCode", user.getCreditScore());
+                    application.put("user", userInfo);
+
+                    // 查询求职意向信息
+                    QueryWrapper<UrIntentions> intentionQueryWrapper = new QueryWrapper<>();
+                    intentionQueryWrapper.eq("user_id", order.getUserId());
+                    UrIntentions intentions = urIntentionService.getOne(intentionQueryWrapper);
+                    if (intentions != null) {
+                        Map<String, Object> intentionInfo = new HashMap<>();
+                        intentionInfo.put("realName", intentions.getRealName());
+                        intentionInfo.put("studentId", intentions.getStudentId());
+                        intentionInfo.put("age", intentions.getAge());
+                        intentionInfo.put("gender", intentions.getGender());
+                        intentionInfo.put("phone", intentions.getPhone());
+                        intentionInfo.put("profession", intentions.getProfession());
+                        intentionInfo.put("introduction", intentions.getIntroduction());
+                        intentionInfo.put("tagName", intentions.getTagName());
+                        application.put("intention", intentionInfo);
+                    }
+                }
+
+                result.add(application);
             }
 
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
-            }
-
-            // 查询兼职详情
-            JbJobs job = jbJobsService.getById(jobId);
-            if (job == null) {
-                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职不存在");
-            }
-
-            // 验证是否是本商户的兼职
-            if (!job.getMerchantId().equals(merchantId)) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权访问此兼职");
-            }
-
-            return ResultUtils.success(job);
+            return ResultUtils.success(result);
         } catch (Exception e) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
         }
     }
 
-    /**
-     * 发布新兼职
-     *
-     * @param job 兼职信息
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 创建结果
-     */
-    @ApiOperation(value = "发布新兼职", notes = "发布新的兼职岗位")
-    @PostMapping("/create")
-    public BaseResponse<Long> createJob(
-            @ApiParam(value = "兼职信息", required = true) @RequestBody JbJobs job,
-            HttpServletRequest request) {
-        // 从Cookie中获取token
+    @ApiOperation(value = "同意应聘", notes = "商家同意用户的应聘，冻结薪资金额，将订单状态改为待入职")
+    @PostMapping("/approveApplication")
+    public BaseResponse<Boolean> approveApplication(
+            javax.servlet.http.HttpServletRequest request,
+            @RequestBody Map<String, Object> requestBody) {
         String token = getTokenFromCookie(request);
         if (token == null) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
         }
 
-        // 验证token
         try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            Long orderId = Long.valueOf(requestBody.get("orderId").toString());
+            BigDecimal freezeAmount = new BigDecimal(requestBody.get("freezeAmount").toString());
 
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
-
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
+            if (orderId == null) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "订单ID不能为空");
             }
 
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
+            if (freezeAmount == null || freezeAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "冻结金额必须大于0");
             }
 
-            // 设置商户ID和发布时间
-            job.setMerchantId(merchantId);
-            job.setPublishTime(new Date());
-            job.setStatus(1); // 发布中
-
-            // 保存兼职信息
-            boolean save = jbJobsService.save(job);
-            if (!save) {
-                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "发布失败");
+            OdOrders order = odOrdersService.getById(orderId);
+            if (order == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
             }
 
-            return ResultUtils.success(job.getId());
-        } catch (Exception e) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
-        }
-    }
-
-    /**
-     * 更新兼职信息
-     *
-     * @param job 兼职信息
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 更新结果
-     */
-    @ApiOperation(value = "更新兼职信息", notes = "更新兼职岗位信息")
-    @PostMapping("/update")
-    public BaseResponse<Boolean> updateJob(
-            @ApiParam(value = "兼职信息", required = true) @RequestBody JbJobs job,
-            HttpServletRequest request) {
-        // 从Cookie中获取token
-        String token = getTokenFromCookie(request);
-        if (token == null) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
-        }
-
-        // 验证token
-        try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
-
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
-
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
+            if (!order.getMerchantId().equals(userId)) {
+                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作该订单");
             }
 
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
+            if (order.getOrderStatus() != 0) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "该订单已处理");
             }
 
-            // 验证兼职是否存在
-            JbJobs existingJob = jbJobsService.getById(job.getId());
-            if (existingJob == null) {
-                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职不存在");
+            // 查询商家钱包
+            WlWallets wallet = wlWalletsService.getById(userId);
+            if (wallet == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "钱包不存在");
             }
 
-            // 验证是否是本商户的兼职
-            if (!existingJob.getMerchantId().equals(merchantId)) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权修改此兼职");
+            // 检查余额是否充足
+            if (wallet.getBalance().compareTo(freezeAmount) < 0) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "余额不足，无法冻结薪资金额");
             }
 
-            // 更新兼职信息
-            boolean update = jbJobsService.updateById(job);
-            return ResultUtils.success(update);
-        } catch (Exception e) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
-        }
-    }
+            // 冻结金额：余额 - 冻结金额，冻结金额 + 冻结金额
+            BigDecimal newBalance = wallet.getBalance().subtract(freezeAmount);
+            BigDecimal newFrozenBalance = wallet.getFrozenBalance().add(freezeAmount);
 
-    /**
-     * 结款功能
-     *
-     * @param jobId 兼职ID
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 结款结果
-     */
-    @ApiOperation(value = "结款", notes = "为兼职岗位进行结款")
-    @PostMapping("/settle")
-    public BaseResponse<Boolean> settleJob(
-            @ApiParam(value = "兼职ID", required = true) @RequestParam Long jobId,
-            HttpServletRequest request) {
-        // 从Cookie中获取token
-        String token = getTokenFromCookie(request);
-        if (token == null) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
-        }
+            wallet.setBalance(newBalance);
+            wallet.setFrozenBalance(newFrozenBalance);
+            wallet.setUpdatedAt(new java.util.Date());
 
-        // 验证token
-        try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
-
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
-
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
+            boolean walletUpdated = wlWalletsService.updateById(wallet);
+            if (!walletUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "钱包更新失败");
             }
 
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
+            // 更新订单状态为待入职（1）
+            order.setOrderStatus(1);
+            boolean orderUpdated = odOrdersService.updateById(order);
+            if (!orderUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "订单更新失败");
             }
 
-            // 验证兼职是否存在
-            JbJobs job = jbJobsService.getById(jobId);
-            if (job == null) {
-                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职不存在");
-            }
-
-            // 验证是否是本商户的兼职
-            if (!job.getMerchantId().equals(merchantId)) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作此兼职");
-            }
-
-            // 更新兼职状态为已完成
-            job.setStatus(3); // 已完成
-            boolean update = jbJobsService.updateById(job);
-            return ResultUtils.success(update);
-        } catch (Exception e) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
-        }
-    }
-
-    /**
-     * 退押金功能
-     *
-     * @param jobId 兼职ID
-     * @param request 请求对象，用于获取Cookie中的JWT令牌
-     * @return 退押金结果
-     */
-    @ApiOperation(value = "退押金", notes = "为兼职岗位退还押金")
-    @PostMapping("/refundDeposit")
-    public BaseResponse<Boolean> refundDeposit(
-            @ApiParam(value = "兼职ID", required = true) @RequestParam Long jobId,
-            HttpServletRequest request) {
-        // 从Cookie中获取token
-        String token = getTokenFromCookie(request);
-        if (token == null) {
-            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
-        }
-
-        // 验证token
-        try {
-            Long merchantId = jwtUtils.getUserIdFromToken(token);
-
-            // 验证用户是否存在且类型正确
-            QueryWrapper<UrUsers> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", merchantId);
-            userQueryWrapper.eq("user_type", 2);
-            UrUsers user = urUsersService.getOne(userQueryWrapper);
-
-            if (user == null) {
-                return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "用户不存在");
-            }
-
-            if (user.getStatus() == 0) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
-            } else if (user.getStatus() == 2) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
-            }
-
-            // 验证兼职是否存在
-            JbJobs job = jbJobsService.getById(jobId);
-            if (job == null) {
-                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职不存在");
-            }
-
-            // 验证是否是本商户的兼职
-            if (!job.getMerchantId().equals(merchantId)) {
-                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作此兼职");
-            }
-
-            // 这里可以添加退押金的具体逻辑，比如更新订单状态、处理资金等
-            // 目前仅返回成功
             return ResultUtils.success(true);
         } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "操作失败: " + e.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "获取进行中订单列表", notes = "获取当前商家所有进行中的订单（order_status=2）")
+    @GetMapping("/orders/in-progress")
+    public BaseResponse<List<Map<String, Object>>> getInProgressOrders(
+            javax.servlet.http.HttpServletRequest request) {
+        String token = getTokenFromCookie(request);
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+
+            // 查询当前商家的所有进行中订单（order_status=2）
+            QueryWrapper<OdOrders> orderQueryWrapper = new QueryWrapper<>();
+            orderQueryWrapper.eq("merchant_id", userId);
+            orderQueryWrapper.eq("order_status", 2);
+            orderQueryWrapper.orderByDesc("created_at");
+            List<OdOrders> orders = odOrdersService.list(orderQueryWrapper);
+
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (OdOrders order : orders) {
+                Map<String, Object> application = new HashMap<>();
+                application.put("orderId", order.getId());
+                application.put("jobId", order.getJobId());
+                application.put("orderStatus", order.getOrderStatus());
+                application.put("createdAt", order.getCreatedAt());
+                application.put("startTime", order.getStartTime());
+                application.put("isDepositRefunded", order.getIsDepositRefunded());
+                application.put("isSettled", order.getIsSettled());
+
+                // 查询兼职信息
+                JbJobs job = jbJobsService.getById(order.getJobId());
+                if (job != null) {
+                    application.put("jobTitle", job.getTitle());
+                    application.put("salaryMin", job.getSalaryMin());
+                    application.put("salaryMax", job.getSalaryMax());
+                    application.put("frozenAmount", job.getDepositAmount());
+                }
+
+                // 查询用户信息
+                UrUsers user = urUsersService.getById(order.getUserId());
+                if (user != null) {
+                    Map<String, Object> userInfo = new HashMap<>();
+                    userInfo.put("id", user.getId());
+                    userInfo.put("username", user.getUsername());
+                    userInfo.put("avatarUrl", user.getAvatarUrl());
+                    userInfo.put("creditCode", user.getCreditScore());
+                    application.put("user", userInfo);
+
+                    // 查询求职意向信息
+                    QueryWrapper<UrIntentions> intentionQueryWrapper = new QueryWrapper<>();
+                    intentionQueryWrapper.eq("user_id", order.getUserId());
+                    UrIntentions intentions = urIntentionService.getOne(intentionQueryWrapper);
+                    if (intentions != null) {
+                        Map<String, Object> intentionInfo = new HashMap<>();
+                        intentionInfo.put("realName", intentions.getRealName());
+                        intentionInfo.put("studentId", intentions.getStudentId());
+                        intentionInfo.put("age", intentions.getAge());
+                        intentionInfo.put("gender", intentions.getGender());
+                        intentionInfo.put("phone", intentions.getPhone());
+                        intentionInfo.put("profession", intentions.getProfession());
+                        intentionInfo.put("introduction", intentions.getIntroduction());
+                        intentionInfo.put("tagName", intentions.getTagName());
+                        application.put("intention", intentionInfo);
+                    }
+                }
+
+                result.add(application);
+            }
+
+            return ResultUtils.success(result);
+        } catch (Exception e) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
         }
     }
 
-    /**
-     * 从Cookie中获取token
-     *
-     * @param request 请求对象
-     * @return token
-     */
+
+
+
+    @ApiOperation(value = "结款", notes = "商家给用户结款，包含退押和结款操作，更新订单状态为已完成")
+    @PostMapping("/orders/settle")
+    public BaseResponse<Boolean> settleOrder(
+            javax.servlet.http.HttpServletRequest request,
+            @RequestBody Map<String, Object> requestBody) {
+        String token = getTokenFromCookie(request);
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            Long orderId = Long.valueOf(requestBody.get("orderId").toString());
+
+            if (orderId == null) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "订单ID不能为空");
+            }
+
+            OdOrders order = odOrdersService.getById(orderId);
+            if (order == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+            }
+
+            if (!order.getMerchantId().equals(userId)) {
+                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作该订单");
+            }
+
+            if (order.getOrderStatus() != 2) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "该订单状态不允许结款");
+            }
+
+            // 查询兼职信息获取押金金额
+            JbJobs job = jbJobsService.getById(order.getJobId());
+            if (job == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职岗位不存在");
+            }
+
+            BigDecimal depositAmount = job.getDepositAmount();
+            if (depositAmount == null) {
+                depositAmount = BigDecimal.ZERO;
+            }
+
+            // 查询商家钱包
+            WlWallets merchantWallet = wlWalletsService.getById(userId);
+            if (merchantWallet == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "商家钱包不存在");
+            }
+
+            // 查询用户钱包
+            WlWallets userWallet = wlWalletsService.getById(order.getUserId());
+            if (userWallet == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "用户钱包不存在");
+            }
+
+            // 保存更新前的余额用于交易记录
+            BigDecimal merchantBalanceBefore = merchantWallet.getFrozenBalance();
+            BigDecimal userBalanceBefore = userWallet.getBalance();
+            BigDecimal userFrozenBefore = userWallet.getFrozenBalance();
+
+            // 1. 商家冻结金额 - 结算金额
+            BigDecimal newMerchantFrozen = merchantWallet.getFrozenBalance().subtract(depositAmount);
+            if (newMerchantFrozen.compareTo(BigDecimal.ZERO) < 0) {
+                newMerchantFrozen = BigDecimal.ZERO;
+            }
+            merchantWallet.setFrozenBalance(newMerchantFrozen);
+
+            // 2. 用户余额 + 结算金额 + 解冻押金
+            BigDecimal newUserBalance = userWallet.getBalance().add(depositAmount).add(userWallet.getFrozenBalance());
+            userWallet.setBalance(newUserBalance);
+            userWallet.setFrozenBalance(BigDecimal.ZERO); // 解冻用户押金
+
+            boolean merchantUpdated = wlWalletsService.updateById(merchantWallet);
+            boolean userUpdated = wlWalletsService.updateById(userWallet);
+
+            if (!merchantUpdated || !userUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "钱包更新失败");
+            }
+
+            // 3. 添加交易流水记录（用户端 - 结款收入）
+            WlTransactionLogs userTransaction = new WlTransactionLogs();
+            userTransaction.setUserId(order.getUserId());
+            userTransaction.setType("SALARY_PAY");
+            userTransaction.setAmount(depositAmount);
+            userTransaction.setBalanceBefore(userBalanceBefore);
+            userTransaction.setBalanceAfter(userWallet.getBalance().subtract(userFrozenBefore));
+            userTransaction.setRelatedOrderId(orderId);
+            userTransaction.setDescription("兼职薪资结算");
+            userTransaction.setCreatedAt(new java.util.Date());
+            userTransaction.setOperatorId(order.getMerchantId());
+            wlTransactionLogsService.save(userTransaction);
+
+            // 4. 添加交易流水记录（用户端 - 押金退还）
+            WlTransactionLogs refundTransaction = new WlTransactionLogs();
+            refundTransaction.setUserId(order.getUserId());
+            refundTransaction.setType("REFUND");
+            refundTransaction.setAmount(userFrozenBefore);
+            refundTransaction.setBalanceBefore(userWallet.getBalance().subtract(userFrozenBefore));
+            refundTransaction.setBalanceAfter(userWallet.getBalance());
+            refundTransaction.setRelatedOrderId(orderId);
+            refundTransaction.setDescription("押金退还");
+            refundTransaction.setCreatedAt(new java.util.Date());
+            refundTransaction.setOperatorId(order.getMerchantId());
+            wlTransactionLogsService.save(refundTransaction);
+
+            // 5. 更新订单状态为已完成（3），并标记已退押和已结款
+            order.setOrderStatus(3);
+            order.setIsDepositRefunded(1);
+            order.setIsSettled(1);
+            order.setCompletedAt(new java.util.Date());
+            boolean orderUpdated = odOrdersService.updateById(order);
+            if (!orderUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "订单更新失败");
+            }
+
+            return ResultUtils.success(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "操作失败: " + e.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "退押", notes = "商家退还用户押金，解冻冻结金额")
+    @PostMapping("/orders/refund")
+    public BaseResponse<Boolean> refundDeposit(
+            javax.servlet.http.HttpServletRequest request,
+            @RequestBody Map<String, Object> requestBody) {
+        String token = getTokenFromCookie(request);
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            Long orderId = Long.valueOf(requestBody.get("orderId").toString());
+
+            if (orderId == null) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "订单ID不能为空");
+            }
+
+            OdOrders order = odOrdersService.getById(orderId);
+            if (order == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+            }
+
+            if (!order.getMerchantId().equals(userId)) {
+                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作该订单");
+            }
+
+            if (order.getOrderStatus() != 2) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "该订单状态不允许退押");
+            }
+
+            // 查询兼职信息获取押金金额
+            JbJobs job = jbJobsService.getById(order.getJobId());
+            if (job == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "兼职岗位不存在");
+            }
+
+            BigDecimal refundAmount = job.getDepositAmount();
+            if (refundAmount == null) {
+                refundAmount = BigDecimal.ZERO;
+            }
+
+            // 查询用户钱包
+            WlWallets userWallet = wlWalletsService.getById(order.getUserId());
+            if (userWallet == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "用户钱包不存在");
+            }
+
+            // 用户冻结金额 - 押金，用户余额 + 押金
+            BigDecimal newFrozenBalance = userWallet.getFrozenBalance().subtract(refundAmount);
+            if (newFrozenBalance.compareTo(BigDecimal.ZERO) < 0) {
+                newFrozenBalance = BigDecimal.ZERO;
+            }
+            BigDecimal newBalance = userWallet.getBalance().add(refundAmount);
+
+            userWallet.setFrozenBalance(newFrozenBalance);
+            userWallet.setBalance(newBalance);
+            userWallet.setUpdatedAt(new java.util.Date());
+
+            boolean walletUpdated = wlWalletsService.updateById(userWallet);
+            if (!walletUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "钱包更新失败");
+            }
+
+            // 更新订单的退押状态为已退押（1），不改变订单状态
+            order.setIsDepositRefunded(1);
+            boolean orderUpdated = odOrdersService.updateById(order);
+            if (!orderUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "订单更新失败");
+            }
+
+            // 添加交易流水记录
+            WlTransactionLogs transactionLog = new WlTransactionLogs();
+            transactionLog.setUserId(order.getUserId());
+            transactionLog.setOperatorId(userId);
+            transactionLog.setType("REFUND");
+            transactionLog.setAmount(refundAmount);
+            transactionLog.setBalanceBefore(userWallet.getBalance().subtract(refundAmount));
+            transactionLog.setBalanceAfter(userWallet.getBalance());
+            transactionLog.setRelatedOrderId(orderId);
+            transactionLog.setDescription("押金退还");
+            wlTransactionLogsService.save(transactionLog);
+
+            return ResultUtils.success(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "操作失败: " + e.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "异议申请", notes = "商家对订单发起异议")
+    @PostMapping("/orders/dispute")
+    public BaseResponse<Boolean> applyDispute(
+            javax.servlet.http.HttpServletRequest request,
+            @RequestBody Map<String, Object> requestBody) {
+        String token = getTokenFromCookie(request);
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            Long orderId = Long.valueOf(requestBody.get("orderId").toString());
+
+            if (orderId == null) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "订单ID不能为空");
+            }
+
+            OdOrders order = odOrdersService.getById(orderId);
+            if (order == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+            }
+
+            if (!order.getMerchantId().equals(userId)) {
+                return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "无权操作该订单");
+            }
+
+            if (order.getOrderStatus() != 2) {
+                return ResultUtils.error(ErrorCode.PARAMS_ERROR, "该订单状态不允许发起异议");
+            }
+
+            // 更新订单状态为纠纷中（4）
+            order.setOrderStatus(4);
+            boolean orderUpdated = odOrdersService.updateById(order);
+            if (!orderUpdated) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "订单更新失败");
+            }
+
+            return ResultUtils.success(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "操作失败: " + e.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "获取订单列表", notes = "获取当前商家的订单列表，支持分页和筛选，包含用户信息和兼职岗位信息")
+    @GetMapping("/orders/list")
+    public BaseResponse<Page<OrderVO>> getOrders(
+            javax.servlet.http.HttpServletRequest request,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) String orderId,
+            @RequestParam(required = false) Integer orderStatus,
+            @RequestParam(required = false) Integer tradeMode) {
+        String token = getTokenFromCookie(request);
+        if (token == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+
+        try {
+            Long userId = jwtUtils.getUserIdFromToken(token);
+
+            Page<OdOrders> page = new Page<>(pageNum, pageSize);
+            QueryWrapper<OdOrders> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("merchant_id", userId);
+
+            if (StringUtils.isNotBlank(orderId)) {
+                queryWrapper.like("id", orderId);
+            }
+            if (orderStatus != null) {
+                queryWrapper.eq("order_status", orderStatus);
+            }
+            if (tradeMode != null) {
+                queryWrapper.eq("trade_mode", tradeMode);
+            }
+
+            queryWrapper.orderByDesc("created_at");
+            Page<OdOrders> result = odOrdersService.page(page, queryWrapper);
+
+            // 转换为VO并联查用户和岗位信息
+            List<OrderVO> voList = new ArrayList<>();
+            for (OdOrders order : result.getRecords()) {
+                OrderVO vo = OrderVO.fromOrder(order);
+
+                // 联查用户信息
+                QueryWrapper<UrIntentions> intentionQuery = new QueryWrapper<>();
+                intentionQuery.eq("user_id", order.getUserId());
+                UrIntentions intention = urIntentionService.getOne(intentionQuery);
+                if (intention != null) {
+                    vo.setStudentId(intention.getStudentId());
+                    vo.setRealName(intention.getRealName());
+                    vo.setAge(intention.getAge());
+                    vo.setGender(intention.getGender());
+                    vo.setPhone(intention.getPhone());
+                    vo.setProfession(intention.getProfession());
+                    vo.setIntroduction(intention.getIntroduction());
+                    vo.setTagName(intention.getTagName());
+
+                }
+
+                // 联查兼职岗位信息
+                JbJobs job = jbJobsService.getById(order.getJobId());
+                if (job != null) {
+                    vo.setJobTitle(job.getTitle());
+                    vo.setJobBriefIntro(job.getBriefIntro());
+                    vo.setJobSalaryMin(job.getSalaryMin());
+                    vo.setJobSalaryMax(job.getSalaryMax());
+                    vo.setJobRegionName(job.getRegionName());
+                }
+
+                voList.add(vo);
+            }
+
+            Page<OrderVO> voPage = new Page<>();
+            voPage.setRecords(voList);
+            voPage.setSize(result.getSize());
+            voPage.setTotal(result.getTotal());
+            voPage.setCurrent(result.getCurrent());
+
+            return ResultUtils.success(voPage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "操作失败: " + e.getMessage());
+        }
+    }
+
     private String getTokenFromCookie(HttpServletRequest request) {
-        String token = null;
-        javax.servlet.http.Cookie[] cookies = request.getCookies();
+        Cookie[] cookies = request.getCookies();
         if (cookies != null) {
-            for (javax.servlet.http.Cookie cookie : cookies) {
-                if ("Authorization".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
+            for (Cookie cookie : cookies) {
+                if ("Merchant-Authorization".equals(cookie.getName())) {
+                    return cookie.getValue();
                 }
             }
         }
-        return token;
+        return null;
     }
 }

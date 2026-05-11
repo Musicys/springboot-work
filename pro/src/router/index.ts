@@ -5,15 +5,16 @@ import Layout from '@/layout/index.vue';
 import jzfb from './module/jzfb';
 import sjxx from './module/sjxx';
 import sjjs from './module/sjjs';
-import sjnt from './module/sjnt';
+import ypgl from './module/ypgl';
 // import { createAsyncComponent } from '@/util/index';
 const pagesconfig = [
    // yhgl, //用户
    // sjgl //商家管理中心
    jzfb,
-   sjxx,
+
    sjjs,
-   sjnt
+   ypgl,
+   sjxx
 ];
 
 // 2. 配置路由

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springbootinit.mapper.ImageHostMapper">
+
+    <resultMap id="BaseResultMap" type="com.springbootinit.model.domain.ImageHost">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="originalName" column="original_name" jdbcType="VARCHAR"/>
+            <result property="storagePath" column="storage_path" jdbcType="VARCHAR"/>
+            <result property="fileSize" column="file_size" jdbcType="BIGINT"/>
+            <result property="aiTags" column="ai_tags" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,original_name,storage_path,
+        file_size,ai_tags,create_time
+    </sql>
+</mapper>

@@ -227,7 +227,7 @@ create table od_orders
     user_id           bigint                                   not null,
     merchant_id       bigint                                   not null,
     trade_mode        tinyint                                  not null comment '1:平台担保，2:线下交易',
-    order_status      tinyint        default 1                 not null comment '1:待入职，2:进行中(押金冻结), 3:完成待结算，4:纠纷中，5:已结款，6:用户爽约，7:异常终止',
+    order_status      tinyint        default 1                 not null comment '1:待入职，2:进行中(押金冻结), 3:已完成，4:纠纷中，5:已结款，6:用户爽约，7:异常终止',
     deposit_frozen_id bigint                                   null comment '关联 wl_freeze_records.id',
     penalty_amount    decimal(10, 2) default 0.00              null comment '违约金金额',
     start_time        datetime                                 null,

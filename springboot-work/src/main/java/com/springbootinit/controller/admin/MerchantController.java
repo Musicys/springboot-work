@@ -182,4 +182,21 @@ public class MerchantController {
         return ResultUtils.success(update);
     }
 
+    @ApiOperation(value = "审核通过商户", notes = "审核通过商户账号，将状态从审核中改为正常")
+    @PostMapping("/approve")
+    public BaseResponse<Boolean> approveMerchant(@ApiParam(value = "商户ID", required = true) @RequestParam Long id) {
+        UrUsers existing = urUsersService.getById(id);
+        if (existing == null || existing.getUserType() != 2) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "商户不存在");
+        }
+        if (existing.getStatus() != 2) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有审核中的商户才能审核通过");
+        }
+        UrUsers merchant = new UrUsers();
+        merchant.setId(id);
+        merchant.setStatus(1);
+        boolean update = urUsersService.updateById(merchant);
+        return ResultUtils.success(update);
+    }
+
 }

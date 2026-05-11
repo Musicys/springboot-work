@@ -38,23 +38,29 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
 
         // 放行登录和注册接口以及静态资源
-        if (requestUri.equals("/api/admin/login")   ||
-            requestUri.equals("/api/admin/logout") ||
-            requestUri.equals("/api/user/login") ||
-            requestUri.equals("/api/user/register") ||
-            requestUri.equals("/api/pro/login") ||
-            requestUri.equals("/api/pro/register") ||
-            requestUri.startsWith("/api/doc.html") ||
-            requestUri.startsWith("/api/webjars/") ||
-            requestUri.startsWith("/api/v2/api-docs") ||
-            requestUri.startsWith("/api/swagger-resources") ||
-            requestUri.startsWith("/api/swagger-ui.html")) {
+        if (requestUri.equals("/api/admin/login") ||
+                requestUri.equals("/api/admin/logout") ||
+                requestUri.equals("/api/user/login") ||
+                requestUri.equals("/api/user/register") ||
+                requestUri.equals("/api/pro/login") ||
+                requestUri.equals("/api/pro/register") ||
+                requestUri.startsWith("/api/file") ||
+                requestUri.startsWith("/api/doc.html") ||
+                requestUri.startsWith("/api/webjars/") ||
+                requestUri.startsWith("/api/v2/api-docs") ||
+                requestUri.startsWith("/api/swagger-resources") ||
+                requestUri.startsWith("/api/swagger-ui.html")||
+                requestUri.startsWith("/api/uploads/")
+        ) {
             return true;
         }
 
+        // 根据接口前缀确定对应的Authorization头名称
+        String authHeaderName = getAuthHeaderName(requestUri);
+        
         // 从请求头中读取token
-        String token = request.getHeader("Authorization");
-        System.out.println("Authorization header: " + token);
+        String token = request.getHeader(authHeaderName);
+        System.out.println(authHeaderName + " header: " + token);
 
         // 打印所有请求头
         System.out.println("All headers:");
@@ -72,7 +78,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                 System.out.println("Number of cookies: " + cookies.length);
                 for (javax.servlet.http.Cookie cookie : cookies) {
                     System.out.println("Cookie name: " + cookie.getName() + ", value: " + cookie.getValue());
-                    if ("Authorization".equals(cookie.getName())) {
+                    if (authHeaderName.equals(cookie.getName())) {
                         token = cookie.getValue();
                         System.out.println("Token from cookie: " + token);
                         break;
@@ -130,12 +136,15 @@ public class JwtInterceptor implements HandlerInterceptor {
     }
 
     private boolean checkPermission(String requestUri, Integer userType) {
+
         // 静态资源路径直接放行
         if (requestUri.startsWith("/api/doc.html") ||
-            requestUri.startsWith("/api/webjars/") ||
-            requestUri.startsWith("/api/v2/api-docs") ||
-            requestUri.startsWith("/api/swagger-resources") ||
-            requestUri.startsWith("/api/swagger-ui.html")) {
+                requestUri.startsWith("/api/webjars/") ||
+                requestUri.startsWith("/api/v2/api-docs") ||
+                requestUri.startsWith("/api/swagger-resources") ||
+                requestUri.startsWith("/api/swagger-ui.html") ||
+                requestUri.startsWith("/api/file")
+        ) {
             return true;
         }
         if (requestUri.startsWith("/api/err")) {
@@ -149,6 +158,22 @@ public class JwtInterceptor implements HandlerInterceptor {
             return userType == 2;
         }
         return false;
+    }
+
+    /**
+     * 根据接口前缀获取对应的Authorization头名称
+     * @param requestUri 请求URI
+     * @return Authorization头名称
+     */
+    private String getAuthHeaderName(String requestUri) {
+        if (requestUri.startsWith("/api/admin/")) {
+            return "Admin-Authorization";
+        } else if (requestUri.startsWith("/api/user/")) {
+            return "User-Authorization";
+        } else if (requestUri.startsWith("/api/pro/")) {
+            return "Merchant-Authorization";
+        }
+        return "Authorization";
     }
 
     private void writeErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws Exception {

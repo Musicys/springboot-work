@@ -14,7 +14,7 @@ instance.interceptors.request.use(
       // 从本地存储获取token
       const token = localStorage.getItem('adminToken');
       if (token) {
-         config.headers.Authorization = `Bearer ${token}`;
+         config.headers['Admin-Authorization'] = `Bearer ${token}`;
       }
 
       return config;
@@ -61,7 +61,7 @@ instance.interceptors.response.use(
  */
 
 export const httpGet = (url, query) => {
-   return instance.get(url, query);
+   return instance.get(url, { params: query });
 };
 
 /**
@@ -98,6 +98,9 @@ export const httpPut = (url, data) => {
  * @param {*} data 参数
  * @returns Promise
  */
-export const httpDelete = url => {
+export const httpDelete = (url, data?) => {
+   if (data) {
+      return instance.delete(url, { data });
+   }
    return instance.delete(url);
 };

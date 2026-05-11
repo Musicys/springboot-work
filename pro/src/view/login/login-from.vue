@@ -150,8 +150,8 @@ const handleLogin = async () => {
          store.setUserInfo(res.data);
 
          // 保存用户信息到本地存储
-         localStorage.setItem('adminUser', JSON.stringify(res.data));
-         localStorage.setItem('adminToken', res.data.token);
+         localStorage.setItem('merchantUser', JSON.stringify(res.data));
+         localStorage.setItem('merchantToken', res.data.token);
       } else {
          // ElMessage.error(res.message || '登录失败');
       }

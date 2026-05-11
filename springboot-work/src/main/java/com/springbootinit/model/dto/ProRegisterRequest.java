@@ -26,4 +26,8 @@ public class ProRegisterRequest {
     private String companyAddress;
 
     private String companyIntro;
+
+    private String avatarUrl;
+
+    private String licenseUrl;
 }

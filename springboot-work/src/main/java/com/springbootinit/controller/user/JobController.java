@@ -81,7 +81,7 @@ public class JobController {
         switch (status) {
             case 1: return "待入职";
             case 2: return "进行中";
-            case 3: return "完成待结算";
+            case 3: return "已完成";
             case 4: return "纠纷中";
             case 5: return "已结款";
             case 6: return "用户爽约";

@@ -139,15 +139,8 @@ const handleLogin = async () => {
       return;
    }
 
-   // 模拟登录成功
-   uni.showLoading({
-      title: '登录中...',
-      mask: true
-   });
-
    try {
-      const res: any = await api.login(loginForm);
-
+      const res = await api.login(loginForm);
       if (res.code === 0) {
          userStore.setUserInfo({
             userId: res.data.userId,
@@ -165,7 +158,6 @@ const handleLogin = async () => {
          });
 
          setTimeout(() => {
-            uni.hideLoading();
             uni.showToast({
                title: '登录成功',
                icon: 'success',
@@ -179,8 +171,7 @@ const handleLogin = async () => {
          }, 100);
       }
    } catch (err) {
-      uni.hideLoading();
-      console.error('登录失败', err);
+      console.log(err);
    }
 };
 

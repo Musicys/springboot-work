@@ -160,4 +160,10 @@ public class JbJobs implements Serializable {
      */
     @TableField("job_detail")
     private String jobDetail;
+//    job_status
+    /**
+     * 兼职状态
+     */
+    @TableField("job_status")
+    private  Integer jobStatus;
 }

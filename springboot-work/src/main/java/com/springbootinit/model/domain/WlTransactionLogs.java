@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,7 +15,9 @@ import java.util.Date;
  * 交易流水表
  * @TableName wl_transaction_logs
  */
-@TableName(value ="wl_transaction_logs")
+
+@TableName(value = "wl_transaction_logs")
+@Data
 public class WlTransactionLogs implements Serializable {
     /**
      * 
@@ -24,6 +29,11 @@ public class WlTransactionLogs implements Serializable {
      * 
      */
     private Long userId;
+
+    /**
+     * 操作者id（商家id）
+     */
+    private Long operatorId;
 
     /**
      * DEPOSIT_IN, SALARY_PAY, PENALTY_OUT, REFUND
@@ -67,6 +77,7 @@ public class WlTransactionLogs implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
 
     /**
      * 

@@ -7,17 +7,6 @@ router.beforeEach(async (to, from, next) => {
    if (to.path == '/login' || to.path == '/register') {
       return next();
    }
-
-   try {
-      // const res = await getAdminInfo();
-      if (res.code == 0) {
-         return next();
-      } else {
-         return next({ path: '/login' });
-      }
-   } catch {
-      return next({ path: '/login' });
-   }
 });
 
 // 后置设置标题

@@ -12,11 +12,11 @@ instance.interceptors.request.use(
    config => {
       // 显示 loading
       // 从本地存储获取token
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('merchantToken');
       if (token) {
          console.log('token', token);
 
-         config.headers.Authorization = `Bearer ${token}`;
+         config.headers['Merchant-Authorization'] = `Bearer ${token}`;
       }
 
       return config;
@@ -63,7 +63,7 @@ instance.interceptors.response.use(
  */
 
 export const httpGet = (url, query) => {
-   return instance.get(url, query);
+   return instance.get(url, { params: query, withCredentials: true });
 };
 
 /**
@@ -91,7 +91,7 @@ export const httpPost = (url, data, file = false) => {
  * @returns Promise
  */
 export const httpPut = (url, data) => {
-   return instance.put(url, data);
+   return instance.put(url, data, { withCredentials: true });
 };
 
 /**
@@ -100,6 +100,9 @@ export const httpPut = (url, data) => {
  * @param {*} data 参数
  * @returns Promise
  */
-export const httpDelete = url => {
-   return instance.delete(url);
+export const httpDelete = (url, data?) => {
+   if (data) {
+      return instance.delete(url, { data, withCredentials: true });
+   }
+   return instance.delete(url, { withCredentials: true });
 };

@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -13,30 +16,53 @@ import java.util.Date;
  * @TableName ds_arbitration_cases
  */
 @TableName(value ="ds_arbitration_cases")
+@Data
 public class DsArbitrationCases implements Serializable {
     /**
-     * 
+     *
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 
+     *
      */
     private Long orderId;
 
     /**
-     * 
+     *
      */
-    private Long initiatorId;
+    private Long ShopId;
+
+    private  Long UserId;
+
+
+
+    private JsonNode userEvidenceJson;
 
     /**
-     * 
+     * 商户证据 (JSON格式)
+     */
+    private JsonNode merchantEvidenceJson;
+
+
+
+    /**
+     * 出错方：0-用户，1-商家，3-无错/无法判定
+     */
+    private Byte faultParty;
+
+    /**
+     * 扣除信誉分
+     */
+    private Integer deductedScore;
+    /**
+     *
      */
     private String userEvidenceSummary;
 
     /**
-     * 
+     *
      */
     private String merchantEvidenceSummary;
 
@@ -51,12 +77,12 @@ public class DsArbitrationCases implements Serializable {
     private Integer rulingResult;
 
     /**
-     * 
+     *
      */
     private BigDecimal finalSettlementAmount;
 
     /**
-     * 
+     *
      */
     private Long handledByAdminId;
 
@@ -66,12 +92,12 @@ public class DsArbitrationCases implements Serializable {
     private Integer status;
 
     /**
-     * 
+     *
      */
     private Date createdAt;
 
     /**
-     * 
+     *
      */
     private Date closedAt;
 
@@ -79,70 +105,61 @@ public class DsArbitrationCases implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 
+     *
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * 
+     *
      */
     public void setId(Long id) {
         this.id = id;
     }
 
     /**
-     * 
+     *
      */
     public Long getOrderId() {
         return orderId;
     }
 
     /**
-     * 
+     *
      */
     public void setOrderId(Long orderId) {
         this.orderId = orderId;
     }
 
     /**
-     * 
+     *
      */
-    public Long getInitiatorId() {
-        return initiatorId;
-    }
+
 
     /**
-     * 
-     */
-    public void setInitiatorId(Long initiatorId) {
-        this.initiatorId = initiatorId;
-    }
-
-    /**
-     * 
+     *
      */
     public String getUserEvidenceSummary() {
         return userEvidenceSummary;
     }
 
     /**
-     * 
+     *
      */
     public void setUserEvidenceSummary(String userEvidenceSummary) {
         this.userEvidenceSummary = userEvidenceSummary;
     }
 
     /**
-     * 
+     *
      */
     public String getMerchantEvidenceSummary() {
         return merchantEvidenceSummary;
     }
 
     /**
-     * 
+     *
      */
     public void setMerchantEvidenceSummary(String merchantEvidenceSummary) {
         this.merchantEvidenceSummary = merchantEvidenceSummary;
@@ -177,28 +194,28 @@ public class DsArbitrationCases implements Serializable {
     }
 
     /**
-     * 
+     *
      */
     public BigDecimal getFinalSettlementAmount() {
         return finalSettlementAmount;
     }
 
     /**
-     * 
+     *
      */
     public void setFinalSettlementAmount(BigDecimal finalSettlementAmount) {
         this.finalSettlementAmount = finalSettlementAmount;
     }
 
     /**
-     * 
+     *
      */
     public Long getHandledByAdminId() {
         return handledByAdminId;
     }
 
     /**
-     * 
+     *
      */
     public void setHandledByAdminId(Long handledByAdminId) {
         this.handledByAdminId = handledByAdminId;
@@ -219,28 +236,28 @@ public class DsArbitrationCases implements Serializable {
     }
 
     /**
-     * 
+     *
      */
     public Date getCreatedAt() {
         return createdAt;
     }
 
     /**
-     * 
+     *
      */
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
     /**
-     * 
+     *
      */
     public Date getClosedAt() {
         return closedAt;
     }
 
     /**
-     * 
+     *
      */
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
@@ -260,7 +277,6 @@ public class DsArbitrationCases implements Serializable {
         DsArbitrationCases other = (DsArbitrationCases) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getOrderId() == null ? other.getOrderId() == null : this.getOrderId().equals(other.getOrderId()))
-            && (this.getInitiatorId() == null ? other.getInitiatorId() == null : this.getInitiatorId().equals(other.getInitiatorId()))
             && (this.getUserEvidenceSummary() == null ? other.getUserEvidenceSummary() == null : this.getUserEvidenceSummary().equals(other.getUserEvidenceSummary()))
             && (this.getMerchantEvidenceSummary() == null ? other.getMerchantEvidenceSummary() == null : this.getMerchantEvidenceSummary().equals(other.getMerchantEvidenceSummary()))
             && (this.getAdminComment() == null ? other.getAdminComment() == null : this.getAdminComment().equals(other.getAdminComment()))
@@ -278,7 +294,6 @@ public class DsArbitrationCases implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getOrderId() == null) ? 0 : getOrderId().hashCode());
-        result = prime * result + ((getInitiatorId() == null) ? 0 : getInitiatorId().hashCode());
         result = prime * result + ((getUserEvidenceSummary() == null) ? 0 : getUserEvidenceSummary().hashCode());
         result = prime * result + ((getMerchantEvidenceSummary() == null) ? 0 : getMerchantEvidenceSummary().hashCode());
         result = prime * result + ((getAdminComment() == null) ? 0 : getAdminComment().hashCode());
@@ -299,7 +314,6 @@ public class DsArbitrationCases implements Serializable {
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
         sb.append(", orderId=").append(orderId);
-        sb.append(", initiatorId=").append(initiatorId);
         sb.append(", userEvidenceSummary=").append(userEvidenceSummary);
         sb.append(", merchantEvidenceSummary=").append(merchantEvidenceSummary);
         sb.append(", adminComment=").append(adminComment);

@@ -55,3 +55,10 @@ export function banMerchant(params: { id: number }) {
 export function unbanMerchant(params: { id: number }) {
    return httpPost('/admin/sjgl/unban?id=' + params.id, params);
 }
+
+/**
+ * @description 审核通过商户
+ */
+export function approveMerchant(params: { id: number }) {
+   return httpPost('/admin/sjgl/approve?id=' + params.id, params);
+}

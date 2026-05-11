@@ -19,6 +19,31 @@ public class PageRequest {
     private Integer pageSize;
 
     /**
+     * 岗位标题
+     */
+    private String title;
+
+    /**
+     * 分类ID
+     */
+    private Integer categoryId;
+
+    /**
+     * 地区代码
+     */
+    private String regionCode;
+
+    /**
+     * 状态
+     */
+    private Integer status;
+
+    /**
+     * 交易模式
+     */
+    private Integer tradeMode;
+
+    /**
      * 构造函数
      */
     public PageRequest() {

@@ -41,3 +41,17 @@ export const getUserInfo = async () => {
 export const logout = async () => {
    return await httpPost('/pro/logout');
 };
+
+/**
+ * @description 获取商家档案信息
+ */
+export const getMerchantProfile = async () => {
+   return await httpPost('/pro/getProfile');
+};
+
+/**
+ * @description 更新商家档案信息
+ */
+export const updateMerchantProfile = async (profile: any) => {
+   return await httpPost('/pro/updateProfile', profile);
+};

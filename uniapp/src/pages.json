@@ -96,15 +96,7 @@
             "navigationBarBackgroundColor": "#E7F0FF"
          }
       },
-      {
-         "path": "pages/tabar/mine/orderlst/index",
-         "name": "orderlst",
-         "style": {
-            "navigationStyle": "custom",
-            "navigationBarTitleText": "订单列表",
-            "navigationBarBackgroundColor": "#E7F0FF"
-         }
-      },
+
       {
          "path": "pages/tabar/mine/exituser/index",
          "name": "exituser",

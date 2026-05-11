@@ -58,11 +58,21 @@
 
       <!-- 提现金额模块 -->
       <view class="balance-card">
-         <view class="balance-left">
-            <text class="balance-label">可提现金额</text>
-            <text class="balance-amount"
-               >¥{{ (userStore.userInfo?.wlWallets?.balance || 0) / 100 }}</text
-            >
+         <view class="balance-info">
+            <view class="balance-left">
+               <text class="balance-label">可提现金额</text>
+               <text class="balance-amount"
+                  >¥{{ userStore.userInfo?.wlWallets?.balance || 0 }}</text
+               >
+            </view>
+            <view class="balance-right">
+               <text class="balance-label">已冻结押金</text>
+               <text class="balance-amount frozen"
+                  >¥{{
+                     userStore.userInfo?.wlWallets?.frozenBalance || 0
+                  }}</text
+               >
+            </view>
          </view>
          <button class="withdraw-btn" @click="handleWithdraw">立即提现</button>
          <view class="balance-links">
@@ -513,11 +523,17 @@ const goToHome = () => {
    box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.1);
 }
 
-.balance-left {
+.balance-info {
+   display: flex;
+   justify-content: space-between;
+   margin-bottom: 20rpx;
+}
+
+.balance-left,
+.balance-right {
    display: flex;
    flex-direction: column;
    gap: 8rpx;
-   margin-bottom: 20rpx;
 }
 
 .balance-label {
@@ -529,6 +545,10 @@ const goToHome = () => {
    font-size: 48rpx;
    font-weight: 700;
    color: #1e293b;
+
+   &.frozen {
+      color: #f59e0b;
+   }
 }
 
 .withdraw-btn {

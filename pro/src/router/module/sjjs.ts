@@ -24,23 +24,11 @@ export default {
             tabConfig: {
                hideClose: false,
                keepAlive: true,
-               name: '结算订单列表'
+               name: '交易流水表'
             }
          }
       },
-      {
-         path: 'detail',
-         name: 'sjjsDetail',
-         component: () => import('@/view/sjjs/detail.vue'),
-         meta: {
-            icon: 'Collection',
-            tabConfig: {
-               hideClose: true,
-               keepAlive: false,
-               name: '结算详情'
-            }
-         }
-      },
+
       {
          path: 'credit',
          name: 'sjjsCredit',

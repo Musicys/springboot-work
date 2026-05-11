@@ -11,10 +11,23 @@ export default {
          hideClose: false, // 隐藏关闭按钮
          keepAlive: true, // 启用缓存
          name: '商家管理中心',
-         access: Rote.admin
+         access: Rote.user
       }
    },
    children: [
+      {
+         path: 'sjglxx',
+         name: 'sjglxx',
+         component: () => import('@/view/sjgl/sjglxx/index.vue'),
+         meta: {
+            icon: 'User',
+            tabConfig: {
+               hideClose: false,
+               keepAlive: true,
+               name: '商家信息'
+            }
+         }
+      },
       {
          path: 'sjgllist',
          name: 'sjgllist',

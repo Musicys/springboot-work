@@ -32,7 +32,7 @@
                         <ElSelect v-model="searchForm.orderStatus" clearable placeholder="请选择" style="width: 100%">
                            <ElOption label="待入职" :value="1" />
                            <ElOption label="进行中" :value="2" />
-                           <ElOption label="完成待结算" :value="3" />
+                           <ElOption label="已完成" :value="3" />
                            <ElOption label="纠纷中" :value="4" />
                            <ElOption label="已结款" :value="5" />
                            <ElOption label="用户爽约" :value="6" />
@@ -86,20 +86,18 @@
                </span>
             </template>
          </ElTableColumn>
-         <ElTableColumn fixed="right" width="340" label="操作">
+         <ElTableColumn fixed="right" width="240" label="操作">
             <template #default="{ row }">
-               <ElButton type="primary" link @click="onEdit(row)"> 编辑 </ElButton>
-               <ElButton type="primary" link @click="onDeleteList(row)"> 删除 </ElButton>
-               <ElButton v-if="row.orderStatus === 3" type="success" link @click="onSettleOrder(row)"> 结款 </ElButton>
+               <ElButton v-if="row.orderStatus === 2" type="success" link @click="onSettleOrder(row)"> 结款 </ElButton>
                <ElButton
-                  v-if="(row.orderStatus === 2 || row.orderStatus === 3) && row.depositFrozenId"
+                  v-if="row.orderStatus === 2 && row.depositFrozenId"
                   type="warning"
                   link
                   @click="onRefundDeposit(row)">
                   退押金
                </ElButton>
                <ElButton
-                  v-if="row.orderStatus === 2 || row.orderStatus === 3 || row.orderStatus === 4"
+                  v-if="row.orderStatus === 2 || row.orderStatus === 4"
                   type="danger"
                   link
                   @click="onRefundOrder(row)">
@@ -138,14 +136,17 @@ const columns = ref([
    { prop: 'id', label: '订单ID', width: '100' },
    { prop: 'applicationId', label: '投递ID', width: '100' },
    { prop: 'jobId', label: '兼职ID', width: '100' },
-   { prop: 'userId', label: '用户ID', width: '100' },
-   { prop: 'merchantId', label: '商家ID', width: '100' },
+   { prop: 'realName', label: '用户姓名', width: '100' },
+   { prop: 'phone', label: '用户电话', width: '120' },
+   { prop: 'studentId', label: '学号', width: '120' },
+   { prop: 'creditScore', label: '信誉分', width: '100' },
+   { prop: 'tagName', label: '求职标签', width: '150', tooltip: true },
+   { prop: 'companyName', label: '商家名称', width: '180', tooltip: true },
+   { prop: 'contactPhone', label: '商家电话', width: '120' },
    { prop: 'tradeMode', label: '交易模式', width: '120' },
    { prop: 'orderStatus', label: '订单状态', width: '120' },
    { prop: 'penaltyAmount', label: '违约金', width: '120' },
    { prop: 'startTime', label: '开始时间', width: '180', tooltip: true },
-   { prop: 'endTime', label: '结束时间', width: '180', tooltip: true },
-   { prop: 'completedAt', label: '完成时间', width: '180', tooltip: true },
    { prop: 'createdAt', label: '创建时间', width: '180', tooltip: true }
 ]);
 const tableData = ref([]);
@@ -166,7 +167,7 @@ function getOrderStatusText(status) {
       case 2:
          return '进行中';
       case 3:
-         return '完成待结算';
+         return '已完成';
       case 4:
          return '纠纷中';
       case 5:

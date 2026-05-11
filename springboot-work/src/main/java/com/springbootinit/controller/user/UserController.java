@@ -71,10 +71,16 @@ public class UserController {
             return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号已被封禁");
         }
 
+        Integer creditScore = user.getCreditScore();
+        if(creditScore<70)
+        {
+            return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "信用分低于70，账号无法登录");
+        }
+
         String token = jwtUtils.generateToken(user.getId(), user.getUserType());
 
         // 设置JWT令牌到Cookie（直接设置响应头以支持SameSite属性）
-        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Authorization", token);
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("User-Authorization", token);
         cookie.setPath("/");             // 设置路径，确保全站可访问
         cookie.setMaxAge(24 * 60 * 60);   // 设置有效期（秒）
         cookie.setHttpOnly(true);          // 防止 XSS 攻击
@@ -88,6 +94,7 @@ public class UserController {
         loginVO.setUserType(user.getUserType());
         loginVO.setAvatarUrl(user.getAvatarUrl());
 
+        loginVO.setCreditScore(user.getCreditScore());
 
         // 查询用户详细信息
         QueryWrapper<UrIntentions> intentionQueryWrapper = new QueryWrapper<>();
@@ -190,7 +197,7 @@ public class UserController {
         javax.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (javax.servlet.http.Cookie cookie : cookies) {
-                if ("Authorization".equals(cookie.getName())) {
+                if ("User-Authorization".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
@@ -240,7 +247,7 @@ public class UserController {
                 loginVO.setProfession(intention.getProfession());
                 loginVO.setIntroduction(intention.getIntroduction());
                 loginVO.setTagName(intention.getTagName());
-                loginVO.setCreditScore(intention.getCreditScore());
+
 
 
             }
@@ -268,7 +275,7 @@ public class UserController {
     @PostMapping("/logout")
     public BaseResponse<Boolean> logout(javax.servlet.http.HttpServletResponse response) {
         // 清除Authorization Cookie
-        String cookieValue = "Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; HttpOnly; Secure=false; SameSite=Strict; Path=/;";
+        String cookieValue = "User-Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; HttpOnly; Secure=false; SameSite=Strict; Path=/;";
         response.addHeader("Set-Cookie", cookieValue);
 
         return ResultUtils.success(true);

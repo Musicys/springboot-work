@@ -46,7 +46,7 @@ public class OdOrders implements Serializable {
     private Integer tradeMode;
 
     /**
-     * 1:待入职，2:进行中(押金冻结), 3:完成待结算，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
+     * 1:待入职，2:进行中(押金冻结), 3:已完成，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
      */
     private Integer orderStatus;
 
@@ -79,6 +79,16 @@ public class OdOrders implements Serializable {
      * 
      */
     private Date createdAt;
+
+    /**
+     * 是否退押: 0:false, 1:true
+     */
+    private Integer isDepositRefunded;
+
+    /**
+     * 是否结款: 0:false, 1:true
+     */
+    private Integer isSettled;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
@@ -168,14 +178,14 @@ public class OdOrders implements Serializable {
     }
 
     /**
-     * 1:待入职，2:进行中(押金冻结), 3:完成待结算，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
+     * 1:待入职，2:进行中(押金冻结), 3:已完成，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
      */
     public Integer getOrderStatus() {
         return orderStatus;
     }
 
     /**
-     * 1:待入职，2:进行中(押金冻结), 3:完成待结算，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
+     * 1:待入职，2:进行中(押金冻结), 3:已完成，4:纠纷中，5:已结款，6:用户爽约，7:异常终止
      */
     public void setOrderStatus(Integer orderStatus) {
         this.orderStatus = orderStatus;
@@ -265,6 +275,34 @@ public class OdOrders implements Serializable {
         this.createdAt = createdAt;
     }
 
+    /**
+     * 是否退押: 0:false, 1:true
+     */
+    public Integer getIsDepositRefunded() {
+        return isDepositRefunded;
+    }
+
+    /**
+     * 是否退押: 0:false, 1:true
+     */
+    public void setIsDepositRefunded(Integer isDepositRefunded) {
+        this.isDepositRefunded = isDepositRefunded;
+    }
+
+    /**
+     * 是否结款: 0:false, 1:true
+     */
+    public Integer getIsSettled() {
+        return isSettled;
+    }
+
+    /**
+     * 是否结款: 0:false, 1:true
+     */
+    public void setIsSettled(Integer isSettled) {
+        this.isSettled = isSettled;
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
@@ -289,7 +327,9 @@ public class OdOrders implements Serializable {
             && (this.getStartTime() == null ? other.getStartTime() == null : this.getStartTime().equals(other.getStartTime()))
             && (this.getEndTime() == null ? other.getEndTime() == null : this.getEndTime().equals(other.getEndTime()))
             && (this.getCompletedAt() == null ? other.getCompletedAt() == null : this.getCompletedAt().equals(other.getCompletedAt()))
-            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()));
+            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
+            && (this.getIsDepositRefunded() == null ? other.getIsDepositRefunded() == null : this.getIsDepositRefunded().equals(other.getIsDepositRefunded()))
+            && (this.getIsSettled() == null ? other.getIsSettled() == null : this.getIsSettled().equals(other.getIsSettled()));
     }
 
     @Override
@@ -309,6 +349,8 @@ public class OdOrders implements Serializable {
         result = prime * result + ((getEndTime() == null) ? 0 : getEndTime().hashCode());
         result = prime * result + ((getCompletedAt() == null) ? 0 : getCompletedAt().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
+        result = prime * result + ((getIsDepositRefunded() == null) ? 0 : getIsDepositRefunded().hashCode());
+        result = prime * result + ((getIsSettled() == null) ? 0 : getIsSettled().hashCode());
         return result;
     }
 
@@ -331,6 +373,8 @@ public class OdOrders implements Serializable {
         sb.append(", endTime=").append(endTime);
         sb.append(", completedAt=").append(completedAt);
         sb.append(", createdAt=").append(createdAt);
+        sb.append(", isDepositRefunded=").append(isDepositRefunded);
+        sb.append(", isSettled=").append(isSettled);
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();

@@ -6,6 +6,8 @@ import com.springbootinit.common.ErrorCode;
 import com.springbootinit.common.ResultUtils;
 import com.springbootinit.model.domain.UrMerchantProfiles;
 import com.springbootinit.model.domain.UrUsers;
+import com.springbootinit.model.domain.WlWallets;
+import com.springbootinit.service.WlWalletsService;
 import com.springbootinit.model.dto.LoginRequest;
 import com.springbootinit.model.dto.ProRegisterRequest;
 import com.springbootinit.model.vo.LoginVO;
@@ -33,6 +35,9 @@ public class ProController {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private WlWalletsService wlWalletsService;
 
     /**
      * 商家登录
@@ -70,7 +75,7 @@ public class ProController {
         String token = jwtUtils.generateToken(user.getId(), user.getUserType());
 
         // 设置JWT令牌到Cookie
-        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Authorization", token);
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Merchant-Authorization", token);
         cookie.setPath("/");             // 设置路径，确保全站可访问
         cookie.setMaxAge(24 * 60 * 60);   // 设置有效期（秒）
         cookie.setHttpOnly(true);          // 防止 XSS 攻击
@@ -112,7 +117,8 @@ public class ProController {
         user.setUsername(registerRequest.getUsername());
         user.setPasswordHash(registerRequest.getPassword());
         user.setUserType(2);
-        user.setStatus(2); // 1:审核中
+        user.setStatus(2); // 2:审核中
+        user.setAvatarUrl(registerRequest.getAvatarUrl());
 
         boolean save = urUsersService.save(user);
         if (!save) {
@@ -131,13 +137,14 @@ public class ProController {
             profile.setLocation(registerRequest.getLocation());
             profile.setLegalPerson(registerRequest.getLegalPerson());
             profile.setLegalIdCard(registerRequest.getLegalIdCard());
-            profile.setCompanyImages(registerRequest.getCompanyImages());
+            profile.setCompanyImages(formatJsonField(registerRequest.getCompanyImages()));
             if (registerRequest.getRegisteredCapital() != null) {
                 profile.setRegisteredCapital(new java.math.BigDecimal(registerRequest.getRegisteredCapital()));
             }
             profile.setCompanyAddress(registerRequest.getCompanyAddress());
             profile.setCompanyIntro(registerRequest.getCompanyIntro());
             profile.setIsSubAccount(0);
+            profile.setLicenseUrl(registerRequest.getLicenseUrl());
             urMerchantProfilesService.updateById(profile);
         } else {
             // 如果档案不存在，创建新记录
@@ -148,17 +155,32 @@ public class ProController {
             profile.setLocation(registerRequest.getLocation());
             profile.setLegalPerson(registerRequest.getLegalPerson());
             profile.setLegalIdCard(registerRequest.getLegalIdCard());
-            profile.setCompanyImages(registerRequest.getCompanyImages());
+            profile.setCompanyImages(formatJsonField(registerRequest.getCompanyImages()));
             if (registerRequest.getRegisteredCapital() != null) {
                 profile.setRegisteredCapital(new java.math.BigDecimal(registerRequest.getRegisteredCapital()));
             }
             profile.setCompanyAddress(registerRequest.getCompanyAddress());
             profile.setCompanyIntro(registerRequest.getCompanyIntro());
             profile.setIsSubAccount(0);
+            profile.setLicenseUrl(registerRequest.getLicenseUrl());
             urMerchantProfilesService.save(profile);
         }
 
+        user.setUserRote(1);
         return ResultUtils.success(user.getId());
+    }
+
+    /**
+     * 格式化JSON字段，将空字符串转换为空数组
+     *
+     * @param jsonStr JSON字符串
+     * @return 格式化后的JSON字符串
+     */
+    private String formatJsonField(String jsonStr) {
+        if (jsonStr == null || jsonStr.trim().isEmpty()) {
+            return "[]";
+        }
+        return jsonStr;
     }
 
     /**
@@ -175,7 +197,7 @@ public class ProController {
         javax.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (javax.servlet.http.Cookie cookie : cookies) {
-                if ("Authorization".equals(cookie.getName())) {
+                if ("Merchant-Authorization".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
@@ -231,7 +253,7 @@ public class ProController {
     @PostMapping("/logout")
     public BaseResponse<Boolean> logout(javax.servlet.http.HttpServletResponse response) {
         // 清除Authorization Cookie
-        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Authorization", "");
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Merchant-Authorization", "");
         cookie.setPath("/");             // 设置路径，确保全站可访问
         cookie.setMaxAge(0);               // 设置有效期为0，表示删除cookie
         cookie.setHttpOnly(true);          // 防止 XSS 攻击
@@ -247,15 +269,15 @@ public class ProController {
      * @param request 请求对象，用于获取Cookie中的JWT令牌
      * @return 商家档案信息
      */
-    @ApiOperation(value = "获取商家档案信息", notes = "根据当前登录商家的token获取档案信息")
+    @ApiOperation(value = "获取商家档案信息", notes = "根据当前登录商家的token获取档案信息，包含钱包余额")
     @PostMapping("/getProfile")
-    public BaseResponse<UrMerchantProfiles> getProfile(javax.servlet.http.HttpServletRequest request) {
+    public BaseResponse<java.util.Map<String, Object>> getProfile(javax.servlet.http.HttpServletRequest request) {
         // 从Cookie中获取token
         String token = null;
         javax.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (javax.servlet.http.Cookie cookie : cookies) {
-                if ("Authorization".equals(cookie.getName())) {
+                if ("Merchant-Authorization".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
@@ -292,7 +314,36 @@ public class ProController {
                 return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "商家档案不存在");
             }
 
-            return ResultUtils.success(profile);
+            // 获取钱包信息
+            WlWallets wallet = wlWalletsService.getById(userId);
+
+            // 构建返回结果
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("userId", userId);
+            result.put("username", user.getUsername());
+            result.put("companyName", profile.getCompanyName());
+            result.put("contactPhone", profile.getContactPhone());
+            result.put("location", profile.getLocation());
+            result.put("legalPerson", profile.getLegalPerson());
+            result.put("legalIdCard", profile.getLegalIdCard());
+            result.put("registeredCapital", profile.getRegisteredCapital());
+            result.put("isSubAccount", profile.getIsSubAccount());
+            result.put("companyAddress", profile.getCompanyAddress());
+            result.put("companyIntro", profile.getCompanyIntro());
+            result.put("companyImages", profile.getCompanyImages());
+            result.put("licenseUrl", profile.getLicenseUrl());
+            result.put("createdAt", profile.getCreatedAt());
+
+            // 添加钱包信息
+            if (wallet != null) {
+                result.put("balance", wallet.getBalance());
+                result.put("frozenBalance", wallet.getFrozenBalance());
+            } else {
+                result.put("balance", 0);
+                result.put("frozenBalance", 0);
+            }
+
+            return ResultUtils.success(result);
         } catch (Exception e) {
             return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "登录已过期");
         }
@@ -344,11 +395,32 @@ public class ProController {
                 return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR, "账号正在审核中，暂时无法操作");
             }
 
-            // 确保修改的是当前用户的档案
-            profile.setUserId(userId);
+            // 获取现有档案，保护敏感字段不被修改
+            UrMerchantProfiles existingProfile = urMerchantProfilesService.getById(userId);
+            if (existingProfile == null) {
+                return ResultUtils.error(ErrorCode.NOT_FOUND_ERROR, "商家档案不存在");
+            }
+
+            // 只允许修改以下字段
+            existingProfile.setCompanyName(profile.getCompanyName());
+            existingProfile.setLicenseUrl(profile.getLicenseUrl());
+            existingProfile.setContactPhone(profile.getContactPhone());
+            existingProfile.setLocation(profile.getLocation());
+            existingProfile.setCompanyImages(profile.getCompanyImages());
+            existingProfile.setRegisteredCapital(profile.getRegisteredCapital());
+            existingProfile.setCompanyAddress(profile.getCompanyAddress());
+            existingProfile.setCompanyIntro(profile.getCompanyIntro());
+
+            // 以下敏感字段不允许修改：
+            // - userId (主键)
+            // - isSubAccount (账号类型)
+            // - parentMerchantId (父账号)
+            // - legalPerson (法人姓名 - 注册时审核)
+            // - legalIdCard (法人身份证 - 注册时审核)
+            // - createdAt (创建时间)
 
             // 更新商家档案信息
-            boolean updated = urMerchantProfilesService.updateById(profile);
+            boolean updated = urMerchantProfilesService.updateById(existingProfile);
             if (!updated) {
                 return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "修改失败");
             }

@@ -55,7 +55,7 @@ public class AdminController {
         }
         String token = jwtUtils.generateToken(user.getId(), user.getUserType());
         // 设置JWT令牌到Cookie
-        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Authorization", token);
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Admin-Authorization", token);
         cookie.setPath("/");             // 设置路径，确保全站可访问
         cookie.setMaxAge(24 * 60 * 60);   // 设置有效期（秒）
         cookie.setHttpOnly(true);          // 防止 XSS 攻击
@@ -120,7 +120,7 @@ public class AdminController {
         javax.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (javax.servlet.http.Cookie cookie : cookies) {
-                if ("Authorization".equals(cookie.getName())) {
+                if ("Admin-Authorization".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
@@ -174,7 +174,7 @@ public class AdminController {
     @PostMapping("/logout")
     public BaseResponse<Boolean> logout(javax.servlet.http.HttpServletResponse response) {
         // 清除Authorization Cookie
-        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Authorization", "");
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie("Admin-Authorization", "");
         cookie.setPath("/");             // 设置路径，确保全站可访问
         cookie.setMaxAge(0);               // 设置有效期为0，表示删除cookie
         cookie.setHttpOnly(true);          // 防止 XSS 攻击

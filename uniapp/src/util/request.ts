@@ -19,13 +19,14 @@ service.setConfig(config => {
 service.interceptors.request.use(
    config => {
       // 从本地存储读取 token
+
       const token = uni.getStorageSync('token');
       console.log('读取', token);
 
       if (token) {
          config.header = {
             ...config.header,
-            Authorization: `Bearer ${token}`
+            'User-Authorization': `Bearer ${token}`
          };
       }
 
@@ -50,7 +51,17 @@ service.interceptors.request.use(
 service.interceptors.response.use(
    response => {
       const { data, config } = response;
+      console.log(data.code);
 
+      if (data.code === 40300) {
+         // 无权限
+
+         uni.showToast({
+            title: data.message || '无权限',
+            icon: 'none'
+         });
+         return Promise.reject(data);
+      }
       if (config.url == '/user/login') {
          configs.cookie = response.cookies[0];
          // 如果返回了 token，存储到本地
@@ -65,7 +76,9 @@ service.interceptors.response.use(
          uni.removeStorageSync('token');
       }
 
-      if (data.code === 40101) {
+      console.log('456', data.code);
+
+      if (data.code === 40100) {
          // 未登录
 
          uni.showToast({

@@ -6,9 +6,14 @@ import com.springbootinit.common.BaseResponse;
 import com.springbootinit.common.ErrorCode;
 import com.springbootinit.common.ResultUtils;
 import com.springbootinit.model.domain.OdOrders;
+import com.springbootinit.model.domain.UrIntentions;
+import com.springbootinit.model.domain.UrMerchantProfiles;
 import com.springbootinit.model.domain.WlFreezeRecords;
 import com.springbootinit.model.dto.OrderSearchWrapper;
+import com.springbootinit.model.vo.AdminOrderVO;
 import com.springbootinit.service.OdOrdersService;
+import com.springbootinit.service.UrIntentionsService;
+import com.springbootinit.service.UrMerchantProfilesService;
 import com.springbootinit.service.WlFreezeRecordsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +40,12 @@ public class AdminOrderController {
     @Autowired
     private WlFreezeRecordsService wlFreezeRecordsService;
 
+    @Autowired
+    private UrIntentionsService urIntentionsService;
+
+    @Autowired
+    private UrMerchantProfilesService urMerchantProfilesService;
+
     /**
      * 获取订单列表（分页）
      *
@@ -42,7 +54,7 @@ public class AdminOrderController {
      */
     @ApiOperation(value = "获取订单列表", notes = "分页获取订单列表，支持按多个字段搜索")
     @PostMapping("/list")
-    public BaseResponse<Page<OdOrders>> getOrders(
+    public BaseResponse<Page<AdminOrderVO>> getOrders(
             @ApiParam(value = "搜索包装参数") @RequestBody OrderSearchWrapper searchWrapper) {
         Page<OdOrders> pageInfo = new Page<>(searchWrapper.getPage().getPageNum(), searchWrapper.getPage().getPageSize());
         QueryWrapper<OdOrders> queryWrapper = new QueryWrapper<>();
@@ -67,11 +79,51 @@ public class AdminOrderController {
         }
         
         queryWrapper.orderByDesc("created_at");
-        Page<OdOrders> result = odOrdersService.page(pageInfo, queryWrapper);
-        result.setSize(searchWrapper.getPage().getPageSize());
-        result.setTotal(odOrdersService.count(queryWrapper));
-        result.setCurrent(searchWrapper.getPage().getPageNum());
-        return ResultUtils.success(result);
+        Page<OdOrders> orderPage = odOrdersService.page(pageInfo, queryWrapper);
+        
+        List<AdminOrderVO> voList = new ArrayList<>();
+        for (OdOrders order : orderPage.getRecords()) {
+            AdminOrderVO vo = AdminOrderVO.fromOrder(order);
+            
+            QueryWrapper<UrIntentions> intentionQuery = new QueryWrapper<>();
+            intentionQuery.eq("user_id", order.getUserId());
+            UrIntentions intention = urIntentionsService.getOne(intentionQuery);
+            if (intention != null) {
+                vo.setStudentId(intention.getStudentId());
+                vo.setRealName(intention.getRealName());
+                vo.setAge(intention.getAge());
+                vo.setGender(intention.getGender());
+                vo.setPhone(intention.getPhone());
+                vo.setProfession(intention.getProfession());
+                vo.setIntroduction(intention.getIntroduction());
+                vo.setTagName(intention.getTagName());
+                vo.setCreditScore(intention.getCreditScore());
+            }
+            
+            QueryWrapper<UrMerchantProfiles> merchantQuery = new QueryWrapper<>();
+            merchantQuery.eq("user_id", order.getMerchantId());
+            UrMerchantProfiles merchant = urMerchantProfilesService.getOne(merchantQuery);
+            if (merchant != null) {
+                vo.setCompanyName(merchant.getCompanyName());
+                vo.setLicenseUrl(merchant.getLicenseUrl());
+                vo.setContactPhone(merchant.getContactPhone());
+                vo.setLocation(merchant.getLocation());
+                vo.setLegalPerson(merchant.getLegalPerson());
+                vo.setRegisteredCapital(merchant.getRegisteredCapital());
+                vo.setCompanyAddress(merchant.getCompanyAddress());
+                vo.setCompanyIntro(merchant.getCompanyIntro());
+            }
+            
+            voList.add(vo);
+        }
+        
+        Page<AdminOrderVO> resultPage = new Page<>();
+        resultPage.setRecords(voList);
+        resultPage.setSize(searchWrapper.getPage().getPageSize());
+        resultPage.setTotal(orderPage.getTotal());
+        resultPage.setCurrent(searchWrapper.getPage().getPageNum());
+        
+        return ResultUtils.success(resultPage);
     }
 
     /**
@@ -211,7 +263,7 @@ public class AdminOrderController {
         }
         
         if (order.getOrderStatus() != 3) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有完成待结算状态的订单才能结款");
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有已完成状态的订单才能结款");
         }
         
         OdOrders updateOrder = new OdOrders();

@@ -22,22 +22,9 @@ export default {
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: false,
-               keepAlive: true,
-               name: '投诉仲裁列表'
-            }
-         }
-      },
-      {
-         path: 'detail',
-         name: 'tszcDetail',
-         component: () => import('@/view/tszc/tszc/detail.vue'),
-         meta: {
-            icon: 'Collection',
-            tabConfig: {
                hideClose: true,
                keepAlive: false,
-               name: '投诉仲裁详情'
+               name: '投诉仲裁列表'
             }
          }
       }

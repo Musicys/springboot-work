@@ -48,3 +48,17 @@ export function exportData() {
 export function approveJob(params: { id: number }) {
    return httpPost('/admin/job/approve?jobId=' + params.id, params);
 }
+
+/**
+ * @description 强制下架兼职岗位
+ */
+export function forceCloseJob(params: { id: number }) {
+   return httpPost('/admin/job/forceClose?jobId=' + params.id, params);
+}
+
+/**
+ * @description 更新兼职岗位状态
+ */
+export function updateStatus(params: { jobId: number; status: number }) {
+   return httpPost('/admin/job/updateStatus', params);
+}

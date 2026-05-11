@@ -181,7 +181,7 @@ function getOrderStatusText(status) {
       case 2:
          return '进行中';
       case 3:
-         return '完成待结算';
+         return '已完成';
       case 4:
          return '纠纷中';
       case 5:

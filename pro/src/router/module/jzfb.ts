@@ -24,20 +24,34 @@ export default {
             tabConfig: {
                hideClose: false, // 隐藏关闭按钮
                keepAlive: true, // 启用缓存
-               name: '兼职发布列表'
+               name: '兼职发布管理'
+            }
+         }
+      },
+
+      {
+         path: 'jzfbpending',
+         name: 'jzfbpending',
+         component: () => import('@/view/jzfb/pending/index.vue'),
+         meta: {
+            icon: 'Collection',
+            tabConfig: {
+               hideClose: false, // 隐藏关闭按钮
+               keepAlive: true, // 启用缓存
+               name: '待审核兼职'
             }
          }
       },
       {
-         path: 'jzfbform',
-         name: 'jzfbform',
-         component: () => import('@/view/jzfb/jzfb/form.vue'),
+         path: 'jzfbpublished',
+         name: 'jzfbpublished',
+         component: () => import('@/view/jzfb/published/index.vue'),
          meta: {
             icon: 'Collection',
             tabConfig: {
-               hideClose: true, // 隐藏关闭按钮
-               keepAlive: false, // 启用缓存
-               name: '添加兼职发布'
+               hideClose: false, // 隐藏关闭按钮
+               keepAlive: true, // 启用缓存
+               name: '已发布兼职'
             }
          }
       }

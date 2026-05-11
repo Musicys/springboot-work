@@ -6,8 +6,13 @@ import com.springbootinit.common.BaseResponse;
 import com.springbootinit.common.ErrorCode;
 import com.springbootinit.common.ResultUtils;
 import com.springbootinit.model.domain.JbJobs;
+import com.springbootinit.model.domain.UrMerchantProfiles;
+import com.springbootinit.model.domain.WlWallets;
+import com.springbootinit.model.dto.JobDetailDTO;
 import com.springbootinit.model.dto.JobSearchWrapper;
 import com.springbootinit.service.JbJobsService;
+import com.springbootinit.service.UrMerchantProfilesService;
+import com.springbootinit.service.WlWalletsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -29,6 +34,12 @@ public class AdminJobController {
     @Autowired
     private JbJobsService jbJobsService;
 
+    @Autowired
+    private UrMerchantProfilesService urMerchantProfilesService;
+
+    @Autowired
+    private WlWalletsService wlWalletsService;
+
     /**
      * 获取兼职岗位列表（分页）
      *
@@ -43,6 +54,9 @@ public class AdminJobController {
         QueryWrapper<JbJobs> queryWrapper = new QueryWrapper<>();
         
         // 搜索条件
+        if (searchWrapper.getParams().getId() != null) {
+            queryWrapper.eq("id", searchWrapper.getParams().getId());
+        }
         if (searchWrapper.getParams().getTitle() != null && !searchWrapper.getParams().getTitle().isEmpty()) {
             queryWrapper.like("title", searchWrapper.getParams().getTitle());
         }
@@ -61,6 +75,12 @@ public class AdminJobController {
         if (searchWrapper.getParams().getTradeMode() != null) {
             queryWrapper.eq("trade_mode", searchWrapper.getParams().getTradeMode());
         }
+        if (searchWrapper.getParams().getJobStatus() != null) {
+            queryWrapper.eq("job_status", searchWrapper.getParams().getJobStatus());
+        }
+        
+        // 按创建时间降序排序
+        queryWrapper.orderByDesc("created_at");
         
         Page<JbJobs> result = jbJobsService.page(pageInfo, queryWrapper);
         result.setSize(searchWrapper.getPage().getPageSize());
@@ -73,16 +93,27 @@ public class AdminJobController {
      * 获取兼职岗位详情
      *
      * @param jobId 兼职岗位ID
-     * @return 兼职岗位详情
+     * @return 兼职岗位详情（包含商家档案和钱包信息）
      */
-    @ApiOperation(value = "获取兼职岗位详情", notes = "根据ID获取兼职岗位详细信息")
+    @ApiOperation(value = "获取兼职岗位详情", notes = "根据ID获取兼职岗位详细信息（包含商家档案和钱包信息）")
     @PostMapping("/detail")
-    public BaseResponse<JbJobs> getJob(@ApiParam(value = "兼职岗位ID", required = true) @RequestParam Long jobId) {
+    public BaseResponse<JobDetailDTO> getJob(@ApiParam(value = "兼职岗位ID", required = true) @RequestParam Long jobId) {
         JbJobs job = jbJobsService.getById(jobId);
         if (job == null) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "兼职岗位不存在");
         }
-        return ResultUtils.success(job);
+        JobDetailDTO dto = new JobDetailDTO();
+        dto.setJob(job);
+        
+        if (job.getMerchantId() != null) {
+            UrMerchantProfiles profile = urMerchantProfilesService.getById(job.getMerchantId());
+            dto.setMerchantProfile(profile);
+            
+            WlWallets wallet = wlWalletsService.getById(job.getMerchantId());
+            dto.setWallet(wallet);
+        }
+        
+        return ResultUtils.success(dto);
     }
 
     /**
@@ -170,21 +201,89 @@ public class AdminJobController {
      * @param jobId 兼职岗位ID
      * @return 审核结果
      */
-    @ApiOperation(value = "审核通过兼职岗位", notes = "将兼职岗位状态从发布中改为进行中")
+    @ApiOperation(value = "审核通过兼职岗位", notes = "将兼职岗位审核状态改为审核通过")
     @PostMapping("/approve")
     public BaseResponse<Boolean> approveJob(@ApiParam(value = "兼职岗位ID", required = true) @RequestParam Long jobId) {
         JbJobs existing = jbJobsService.getById(jobId);
         if (existing == null) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "兼职岗位不存在");
         }
-        if (existing.getStatus() != 1) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有发布中的岗位才能审核通过");
+        if (existing.getJobStatus() != 0) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "只有待审核的岗位才能审核通过");
         }
         JbJobs job = new JbJobs();
         job.setId(jobId);
+        job.setJobStatus(1);
         job.setStatus(2);
         boolean update = jbJobsService.updateById(job);
         return ResultUtils.success(update);
+    }
+
+    /**
+     * 强制下架兼职岗位
+     *
+     * @param jobId 兼职岗位ID
+     * @return 操作结果
+     */
+    @ApiOperation(value = "强制下架兼职岗位", notes = "将兼职岗位状态改为强制下架")
+    @PostMapping("/forceClose")
+    public BaseResponse<Boolean> forceCloseJob(@ApiParam(value = "兼职岗位ID", required = true) @RequestParam Long jobId) {
+        JbJobs existing = jbJobsService.getById(jobId);
+        if (existing == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "兼职岗位不存在");
+        }
+        JbJobs job = new JbJobs();
+        job.setId(jobId);
+        job.setStatus(5);
+        boolean update = jbJobsService.updateById(job);
+        return ResultUtils.success(update);
+    }
+
+    /**
+     * 更新兼职岗位状态
+     *
+     * @param request 更新状态请求
+     * @return 操作结果
+     */
+    @ApiOperation(value = "更新兼职岗位状态", notes = "更新兼职岗位的状态")
+    @PostMapping("/updateStatus")
+    public BaseResponse<Boolean> updateJobStatus(@RequestBody UpdateStatusRequest request) {
+        Long jobId = request.getJobId();
+        Integer status = request.getStatus();
+        
+        JbJobs existing = jbJobsService.getById(jobId);
+        if (existing == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "兼职岗位不存在");
+        }
+        JbJobs job = new JbJobs();
+        job.setId(jobId);
+        job.setStatus(status);
+        boolean update = jbJobsService.updateById(job);
+        return ResultUtils.success(update);
+    }
+
+    /**
+     * 更新状态请求对象
+     */
+    public static class UpdateStatusRequest {
+        private Long jobId;
+        private Integer status;
+
+        public Long getJobId() {
+            return jobId;
+        }
+
+        public void setJobId(Long jobId) {
+            this.jobId = jobId;
+        }
+
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(Integer status) {
+            this.status = status;
+        }
     }
 
 }

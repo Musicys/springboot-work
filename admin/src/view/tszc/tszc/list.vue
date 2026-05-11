@@ -34,23 +34,43 @@
          </div>
       </div>
       <ElTable v-loading="loading" :data="tableData" border max-height="550" @row-dblclick="onRowDbClick">
-         <ElTableColumn prop="id" label="投诉ID" width="100" />
+         <ElTableColumn prop="id" label="案件ID" width="100" />
          <ElTableColumn prop="orderId" label="订单ID" width="120" />
-         <ElTableColumn prop="complainantId" label="投诉人ID" width="120" />
-         <ElTableColumn prop="defendantId" label="被投诉人ID" width="120" />
-         <ElTableColumn prop="targetType" label="被投诉类型" width="120">
+         <ElTableColumn prop="userId" label="用户ID" width="100" />
+         <ElTableColumn prop="userUsername" label="用户姓名" width="120" />
+         <ElTableColumn prop="userCreditCode" label="用户信誉分" width="120" />
+         <ElTableColumn prop="shopId" label="商家ID" width="100" />
+         <ElTableColumn prop="companyName" label="企业名称" width="150" show-overflow-tooltip />
+         <ElTableColumn prop="contactPhone" label="联系电话" width="130" />
+         <ElTableColumn prop="faultParty" label="出错方" width="130">
             <template #default="scope">
-               <span>{{ getTargetTypeText(scope.row.targetType) }}</span>
+               <span>{{ getFaultPartyDesc(scope.row.faultParty) }}</span>
             </template>
          </ElTableColumn>
-         <ElTableColumn prop="reasonCode" label="投诉原因" width="120" />
-         <ElTableColumn prop="status" label="状态" width="120">
+         <ElTableColumn prop="deductedScore" label="扣除信誉分" width="120" />
+         <ElTableColumn prop="rulingResult" label="裁决结果" width="120">
             <template #default="scope">
-               <span>{{ getStatusText(scope.row.status) }}</span>
+               <span>{{ getRulingResultDesc(scope.row.rulingResult) }}</span>
             </template>
          </ElTableColumn>
-         <ElTableColumn prop="createdAt" label="创建时间" width="180" />
-         <ElTableColumn fixed="right" width="180" label="操作">
+         <ElTableColumn prop="status" label="状态" width="100">
+            <template #default="scope">
+               <ElTag :type="scope.row.status === 1 ? 'warning' : 'success'" size="small">
+                  {{ getStatusText(scope.row.status) }}
+               </ElTag>
+            </template>
+         </ElTableColumn>
+         <ElTableColumn prop="createdAt" label="创建时间" width="180">
+            <template #default="scope">
+               {{ formatDate(scope.row.createdAt) }}
+            </template>
+         </ElTableColumn>
+         <ElTableColumn prop="closedAt" label="结案时间" width="180">
+            <template #default="scope">
+               {{ formatDate(scope.row.closedAt) }}
+            </template>
+         </ElTableColumn>
+         <ElTableColumn fixed="right" width="120" label="操作">
             <template #default="{ row }">
                <ElButton type="primary" link @click="onView(row)"> 查看 </ElButton>
             </template>
@@ -76,73 +96,12 @@ import { useRouter } from 'vue-router';
 
 import DefaultContainer from '@/components/DefaultContainer/index.vue';
 import { usePagination } from '@/util/hooks.ts';
+import * as arbitrationApi from '@/api/tszc/tszc.ts';
 
 const { pagination } = usePagination();
 const router = useRouter();
 
-const tableData = ref([
-   {
-      id: 1,
-      orderId: 1001,
-      complainantId: 101,
-      defendantId: 1,
-      targetType: 2,
-      reasonCode: '服务态度差',
-      status: 1,
-      createdAt: '2026-01-01 10:00:00'
-   },
-   {
-      id: 2,
-      orderId: 1002,
-      complainantId: 1,
-      defendantId: 102,
-      targetType: 1,
-      reasonCode: '用户爽约',
-      status: 2,
-      createdAt: '2026-01-02 11:00:00'
-   },
-   {
-      id: 3,
-      orderId: 1003,
-      complainantId: 103,
-      defendantId: 2,
-      targetType: 2,
-      reasonCode: '薪资不符',
-      status: 3,
-      createdAt: '2026-01-03 12:00:00'
-   },
-   {
-      id: 4,
-      orderId: 1004,
-      complainantId: 104,
-      defendantId: 3,
-      targetType: 2,
-      reasonCode: '工作环境差',
-      status: 4,
-      createdAt: '2026-01-04 13:00:00'
-   },
-   {
-      id: 5,
-      orderId: 1005,
-      complainantId: 2,
-      defendantId: 105,
-      targetType: 1,
-      reasonCode: '中途逃逸',
-      status: 2,
-      createdAt: '2026-01-05 14:00:00'
-   },
-   {
-      id: 6,
-      orderId: 1006,
-      complainantId: 106,
-      defendantId: 4,
-      targetType: 2,
-      reasonCode: '虚假信息',
-      status: 1,
-      createdAt: '2026-01-06 15:00:00'
-   }
-]);
-
+const tableData = ref([]);
 const loading = ref(false);
 const searchForm = ref({
    id: null,
@@ -150,38 +109,90 @@ const searchForm = ref({
    status: null
 });
 
-function getTargetTypeText(type) {
-   switch (type) {
+function getStatusText(status) {
+   switch (status) {
       case 1:
-         return '用户';
+         return '审理中';
       case 2:
-         return '商家';
+         return '已结案';
       default:
          return '未知';
    }
 }
 
-function getStatusText(status) {
-   switch (status) {
+function getRulingResultDesc(result) {
+   switch (result) {
       case 1:
-         return '待处理';
+         return '全额结款';
       case 2:
-         return '处理中';
+         return '部分结款';
       case 3:
-         return '成功(处罚)';
+         return '不结款';
       case 4:
-         return '失败(证据不足)';
+         return '退还押金';
       default:
-         return '未知';
+         return '-';
+   }
+}
+
+function getFaultPartyDesc(party) {
+   switch (party) {
+      case 0:
+         return '用户';
+      case 1:
+         return '商家';
+      case 3:
+         return '无错/无法判定';
+      default:
+         return '-';
+   }
+}
+
+function formatDate(dateStr) {
+   if (!dateStr) return '-';
+   try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('zh-CN', {
+         year: 'numeric',
+         month: '2-digit',
+         day: '2-digit',
+         hour: '2-digit',
+         minute: '2-digit',
+         second: '2-digit'
+      });
+   } catch {
+      return dateStr;
    }
 }
 
 async function onSearch() {
    loading.value = true;
-   // 模拟数据加载
-   setTimeout(() => {
+   try {
+      const params = {
+         pageNum: pagination.pageNum,
+         pageSize: pagination.pageSize
+      };
+      if (searchForm.value.id !== null && searchForm.value.id !== undefined) {
+         params.id = searchForm.value.id;
+      }
+      if (searchForm.value.orderId !== null && searchForm.value.orderId !== undefined) {
+         params.orderId = searchForm.value.orderId;
+      }
+      if (searchForm.value.status !== null && searchForm.value.status !== undefined) {
+         params.status = searchForm.value.status;
+      }
+
+      const response = await arbitrationApi.getList(params);
+      if (response.data) {
+         tableData.value = response.data.records;
+         pagination.total = response.data.total;
+      }
+   } catch (error) {
+      console.error('查询仲裁案件列表失败:', error);
+      tableData.value = [];
+   } finally {
       loading.value = false;
-   }, 500);
+   }
 }
 
 onMounted(() => {
@@ -193,7 +204,7 @@ function onRowDbClick(row) {
 }
 
 function onView(row) {
-   router.push({ path: '/pages/tszc/tszc/detail', query: { id: row.id } });
+   router.push({ path: '/admin/arbitration/detail', query: { id: row.id } });
 }
 
 function onSizeChange(pageSize) {
@@ -205,6 +216,7 @@ function onSizeChange(pageSize) {
 function resetSearchForm(formEl) {
    if (!formEl) return;
    formEl.resetFields();
+   pagination.pageNum = 1;
    onSearch();
 }
 </script>

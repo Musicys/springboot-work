@@ -1,6 +1,6 @@
 <template>
    <DefaultContainer>
-      <div class="title">商家管理</div>
+      <div class="title">审核商家管理</div>
       <div class="search-box">
          <div style="padding: 15px 8px">
             <ElForm ref="searchFormRef" :model="searchForm" label-width="120" label-position="left">
@@ -19,6 +19,7 @@
                   <ElCol :span="8">
                      <ElFormItem label="状态：" prop="status">
                         <ElSelect v-model="searchForm.status" clearable placeholder="请选择" style="width: 100%">
+                           <ElOption label="审核中" value="2" />
                            <ElOption label="正常" value="1" />
                            <ElOption label="封禁" value="0" />
                            <ElOption label="注销" value="-1" />
@@ -34,18 +35,6 @@
          </div>
       </div>
 
-      <!-- 功能按钮 -->
-      <div class="menu-box">
-         <div class="right">
-            <ElButton type="primary" style="margin-right: 10px" @click="router.push(`/pages/sjgl/sjglform`)">
-               新增
-            </ElButton>
-            <ElButton :loading="exportLoading" @click="exportHandler">
-               <i class="iconfont icon-Download" style="margin-right: 6px" />
-               导出
-            </ElButton>
-         </div>
-      </div>
       <ElTable v-loading="loading" :data="tableData" border max-height="550" @row-dblclick="onRowDbClick">
          <ElTableColumn
             v-for="column in columns"
@@ -69,10 +58,11 @@
                </span>
             </template>
          </ElTableColumn>
-         <ElTableColumn fixed="right" width="240" label="操作">
+         <ElTableColumn fixed="right" width="300" label="操作">
             <template #default="{ row }">
                <ElButton type="primary" link @click="onEdit(row)"> 编辑 </ElButton>
                <ElButton type="primary" link @click="onDeleteList(row)"> 删除 </ElButton>
+               <ElButton v-if="row.status === 2" type="success" link @click="onApprove(row)"> 审核通过 </ElButton>
                <ElButton v-if="row.status === 1" type="danger" link @click="onBan(row)"> 封禁 </ElButton>
                <ElButton v-else-if="row.status === 0" type="success" link @click="onUnban(row)"> 解封 </ElButton>
             </template>
@@ -120,7 +110,7 @@ const loading = ref(false);
 const searchForm = ref({
    username: null,
    regionCode: null,
-   status: null
+   status: 2 // 默认查询审核中的商家
 });
 
 // 获取状态文本
@@ -132,6 +122,8 @@ function getStatusText(status) {
          return '封禁';
       case -1:
          return '注销';
+      case 2:
+         return '审核中';
       default:
          return '未知';
    }
@@ -280,6 +272,33 @@ function onUnban(row) {
    });
 }
 
+function onApprove(row) {
+   ElMessageBox({
+      title: '提示',
+      type: 'info',
+      message: '确定要审核通过该商家吗?',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      beforeClose: (action, instance, done) => {
+         if (action === 'confirm') {
+            apis
+               .approveMerchant({ id: row.id })
+               .then(() => {
+                  ElMessage.success('审核通过');
+                  onSearch();
+                  done();
+               })
+               .catch(() => {
+                  ElMessage.error('审核失败');
+               });
+         } else {
+            done();
+         }
+      }
+   });
+}
+
 const searchFormRef = ref();
 
 function onSizeChange(pageSize) {
@@ -302,35 +321,6 @@ function resetSearchForm(formEl) {
    if (!formEl) return;
    formEl.resetFields();
    onSearch();
-}
-// 导出loading
-const exportLoading = ref(false);
-
-/** 导出按钮操作 */
-async function exportHandler() {
-   try {
-      exportLoading.value = true;
-      console.log('导出');
-
-      const response = await apis.exportData();
-
-      // 创建下载链接
-      const url = window.URL.createObjectURL(response);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `商家列表${new Date().getTime()}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      // 清理资源
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      ElMessage.success('导出成功');
-   } catch (error) {
-      console.error('导出失败:', error);
-      ElMessage.error('导出失败，请稍后重试');
-   } finally {
-      exportLoading.value = false;
-   }
 }
 </script>
 
